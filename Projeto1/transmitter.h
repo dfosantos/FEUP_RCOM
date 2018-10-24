@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
+#include <stdbool.h>
+#include <stdlib.h>
+
 
 #define BAUDRATE B38400
 #define MODEMDEVICE "/dev/ttyS1"
@@ -31,7 +34,6 @@
 #define REJ0 0x01
 #define REJ1 0x21
 
-#define C_I 0x01
 
 #define TRAMA_S 0
 #define TRAMA_I 1
@@ -49,7 +51,7 @@ void send_UA(int fd);
 int LLWRITE(int fd, char *buffer, int length);
 
 int LLOPEN(int fd, int transmitter); //envia trama SET e recebe trama UA.
-
+int LLREAD(int fd, char *buffer);
 int LLCOSE(int fd);
 
 //-------------------------------------------Application Link Layer --------------------------
