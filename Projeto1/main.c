@@ -2,7 +2,6 @@
 #include "transmitter.h"
 
 
-
 volatile int STOP=FALSE;
 int flag=0;
 int TIMEOUT=0;
@@ -21,10 +20,8 @@ int LLOPEN(int fd, int transmitter){
 	char address, address2;
 	unsigned char c;//last char received
 	int state = 0;
-	if(transmitter){
-		printf("Receiving UA...\n");
-	}
-	else{
+	
+	if(!transmitter){
 		printf("Receiving SET...\n");
 	}  
 
@@ -32,17 +29,17 @@ int LLOPEN(int fd, int transmitter){
 	
 		if(transmitter){
   			send_SET(fd);
+			printf("Receiving UA...\n");
 			alarm(3);  		
 			flag=0;
 		}
-  		printf("TIMEOUT=%d\n",TIMEOUT);
+  		
   		
 		while(state != 5 && flag==0 ){
   			
+			read(fd, &c, 1);
 			
-			if(read(fd, &c, 1)>0){
-				printf("State %d - char: 0x%X\n", state, c);
-    	
+			   		
  		   switch (state) {
  		     case 0://expecting flag
  		       if(c == FLAG){
@@ -82,7 +79,7 @@ int LLOPEN(int fd, int transmitter){
  		     case 4://Expecting FLAG
  		       if (c == FLAG){
  		         state = 5;
-				if (!transmitter){send_UA;}
+				if (!transmitter){send_UA(fd);}
  		         printf("Ligacao Estabelecida! :)\n");
  		         return fd; 
  		       }else{
@@ -92,7 +89,7 @@ int LLOPEN(int fd, int transmitter){
  		   }
     	}
    	 }
-    }
+    
     printf("TIMEOUT - Ligacao Não Estabelecida\n");
     return -1;
 }
@@ -155,6 +152,7 @@ int main(int argc, char** argv){
 	fflush(NULL);
     int fd,c, res;
 
+	
 /*	//OPEN FILE 	
 	FILE *ptr;
 	ptr = fopen("penguin.txt","rb");
