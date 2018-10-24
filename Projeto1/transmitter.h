@@ -43,11 +43,12 @@ void time_out();
 
 
 void send_SET(int fd);
+void send_UA(int fd);
 //-------------------------------------------------Data Link Layer --------------------------
 
 int LLWRITE(int fd, char *buffer, int length);
 
-int LLOPEN(int fd); //envia trama SET e recebe trama UA.
+int LLOPEN(int fd, int transmitter); //envia trama SET e recebe trama UA.
 
 int LLCOSE(int fd);
 

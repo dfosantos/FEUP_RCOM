@@ -7,17 +7,18 @@ volatile int STOP=FALSE;
 int flag=0;
 int TIMEOUT=0;
 
+
 void time_out(){
 	TIMEOUT++;
 	flag=1;
 	printf("timeout!!!!!\n");
 	printf("FLAG=%d\n",flag);
 }
-int LLOPEN(int fd, bool transmitter){	
+int LLOPEN(int fd, int transmitter){	
 
 	if(transmitter)
     (void) signal(SIGALRM, time_out);
-	char address;
+	char address, address2;
 	unsigned char c;//last char received
 	int state = 0;
 	if(transmitter){
@@ -50,7 +51,7 @@ int LLOPEN(int fd, bool transmitter){
  		       break;
  		     case 1://expecting A
 				if(transmitter){address=A_R;}
-				else{address=A_T}
+				else{address=A_T;}
 	 		       if(c == address){
 	 		         state = 2;
 	 		       }else if(c == FLAG){//if not FLAG instead of A
@@ -62,7 +63,7 @@ int LLOPEN(int fd, bool transmitter){
 				
  		     case 2://Expecting C_SET
 				if(transmitter){address2=UA;}
-				else{address2=SET}
+				else{address2=SET;}
 	 		       if(c == address2){
 	 		         state = 3;
 	 		       }else if(c == FLAG){//if FLAG received
@@ -222,7 +223,7 @@ int main(int argc, char** argv){
     /*testing*/
     
     
-	LLOPEN(fd);
+	LLOPEN(fd, 1);
 	
 
     	
