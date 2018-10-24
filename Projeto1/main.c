@@ -1,7 +1,6 @@
 /*Non-Canonical Input Processing*/
 #include "transmitter.h"
 
-
 volatile int STOP=FALSE;
 int flag=0;
 int TIMEOUT=0;
@@ -43,7 +42,8 @@ int LLOPEN(int fd, int transmitter){
 			
 			   		
  		   switch (state) {
- 		    (void) signal(SIGALRM, time_out);     case 0://expecting flag
+ 		    (void) signal(SIGALRM, time_out);     
+			case 0://expecting flag
  		       if(c == FLAG){
  		         state = 1;
  		       }//else stay in same state
@@ -60,7 +60,7 @@ int LLOPEN(int fd, int transmitter){
 						state=0;//else stay in same state
 	 		       break;
 				
- 		     case 2://Expecting C_SET
+ 		     case 2:
 				if(transmitter){address2=UA;}
 				else{address2=SET;}
 	 		       if(c == address2){
@@ -124,7 +124,7 @@ void send_SET(int fd){
 }
 
 int LLWRITE(int fd, char *buffer, int length){
-	
+	fflush(NULL);
 	TIMEOUT = 0;
 	char *trama = malloc(length+6);
 	char controlo;
@@ -214,14 +214,9 @@ int LLWRITE(int fd, char *buffer, int length){
  		   }
     	}
    	 }
-	
-
-
-
-
-
-
-   	 return -1;
+	free(trama);
+	printf("TIMEOUT - Escrita não Realizada\n");
+	return -1;
 	
 }
 
@@ -318,22 +313,20 @@ int main(int argc, char** argv){
     
     /*testing*/
     
-    
+    	fflush(NULL);
 	LLOPEN(fd, 1);
 	
 	//IMPLEMENTAR DIVISÃO OCTETOS
 	if(isStart){
-
+	fflush(NULL);
 		//Preparar buffer start
-		char *teste = "OLA OLA";
-		LLWRITE(fd,teste,sizeof(teste));
-
-	}
-
-	else{
+		char *teste="OLA";
+		//write(fd,teste,3);
 		
-
+		LLWRITE(fd,teste,sizeof(teste));
+		
 	}
+
 
     	
     	
