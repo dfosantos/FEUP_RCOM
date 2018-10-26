@@ -48,7 +48,7 @@ int LLOPEN(int fd) {
 
 
             switch (state) {
-                (void) signal(SIGALRM, time_out);
+                
             case 0://expecting flag
                 if(c == FLAG) {
                     state = 1;
