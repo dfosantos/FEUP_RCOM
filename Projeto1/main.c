@@ -4,7 +4,7 @@
 
 
 
-//
+
 #define COM_TYPE TRANSMITTER
 volatile int STOP=FALSE;
 int flag=0;
@@ -23,7 +23,7 @@ void time_out() {
 int LLOPEN(int fd) {
 
     if(COM_TYPE)
-        (void) signal(SIGALRM, time_out);
+    (void) signal(SIGALRM, time_out);
     char address, address2;
     unsigned char c;//last char received
     int state = 0;
@@ -126,14 +126,14 @@ void send_UA(int fd) {
 }
 void send_SET(int fd) {
 
-    char trama_SET[5];
-    trama_SET[0]=FLAG;
-    trama_SET[1]=A_T;
-    trama_SET[2]=SET;
-    trama_SET[3]=A_T^SET;
-    trama_SET[4]=FLAG;
+    char trama[5];
+    trama[0]=FLAG;
+    trama[1]=A_T;
+    trama[2]=SET;
+    trama[3]=A_T^SET;
+    trama[4]=FLAG;
 
-    write(fd, trama_SET, 5);
+    write(fd, trama, 5);
     fflush(NULL);
 
 
@@ -148,10 +148,10 @@ int LLWRITE(int fd, char *buffer, int length) {
     int i, written, state = 0;
 
     if(rej==0) {
-        rej=1;
+        rej==1;
         controlo = RR1;
     }
-    else if(rej=1) {
+    else if(rej==1) {
         rej=0;
         controlo = RR0;
     }
@@ -312,27 +312,137 @@ int LLREAD(int fd, char *buffer) {
 return length;
 
 }
+
+void send_DISC(int fd) {
+
+    char trama[5];
+    trama[0]=FLAG;
+	if(COM_TYPE)
+		trama[1]=A_T;
+	else{
+		trama[1] = A_R;
+	}
+    trama[2]=DISC;
+    trama[3]=A_T^DISC;
+    trama[4]=FLAG;
+
+    write(fd, trama, 5);
+    fflush(NULL);
+
+}
 int LLCOSE(int fd) {
 
-    if(DISC)
-        return -1;
-    if(DISC)
-        return -1;
-    if(UA)
-        return -1;
+	char address;
+	int state = 0;
+	char c;
+	if(COM_TYPE){
+		send_DISC(fd);
+	}
+	
+	if(COM_TYPE)
+	while(TIMEOUT<3 || !COM_TYPE) {
+		if(COM_TYPE) {
+            
+            printf("Receiving DISC...\n");
+			
+			if(COM_TYPE){
+	            alarm(3);
+			}
 
-    return 1;
+            flag=0;
+        }
+
+
+        while(state != 5 && flag==0 ) {
+
+            read(fd, &c, 1);
+
+
+            switch (state) {
+            case 0://expecting flag
+                if(c == FLAG) {
+                    state = 1;
+                }//else stay in same state
+                break;
+            case 1://expecting A
+                if(COM_TYPE) {
+                    address=A_R;
+                }
+                else {
+                    address=A_T;
+                }
+                if(c == address) {
+                    state = 2;
+                } else if(c == FLAG) { //if not FLAG instead of A
+                    state = 1;
+
+                } else
+                    state=0;//else stay in same state
+                break;
+
+            case 2:
+              
+                if(c == DISC) {
+                    state = 3;
+                } else if(c == FLAG) { //if FLAG received
+                    state = 1;
+                } else {//else go back to beggining
+                    state = 0;
+                }
+                break;
+            case 3://Expecting BCC
+                if (c == address^DISC) {
+                    state = 4;
+                } else {
+                    state = 0;//else go back to beggining
+                }
+                break;
+            case 4://Expecting FLAG
+                if (c == FLAG) {
+                    state = 5;
+                    if (!COM_TYPE) {
+                        send_DISC(fd);
+						                   
+					}
+					else if(COM_TYPE){
+					send_UA(fd);
+					printf("Ligação encerrada!");
+					return 1; 
+					}
+                } else {
+                    state = 0;//else go back to beggining
+                }
+                break;
+            }
+        }
+    }
+
+
+
+    return -1;
 }
+FILE *openfile(char* filename){
 
+	FILE *file;
+	if(COM_TYPE) file=fopen(filename, "rb");
+	else file=fopen(filename, "wb");
+	
+	if(file==NULL){
+		printf("Erro a abrir o ficheiro %s", filename);
+		return NULL;
+	}
+	
+	return file;
+}
 
 int main(int argc, char** argv) {
     fflush(NULL);
     int fd,c, res;
 
 
-    /*	//OPEN FILE
+    /*«	//OPEN FILE
     	FILE *ptr;
-    	ptr = fopen("penguin.txt","rb");
+    	ptr = fopen("penguin.gif","rb");
     	unsigned char *buffer;
     	unsigned long int filesize;
 
@@ -428,7 +538,8 @@ int main(int argc, char** argv) {
 
 		printf("char[%d] : %x\n", j , buffer[j]);
 	}	
-
+	
+	//LLCLOSE(fd);
 
 
 
