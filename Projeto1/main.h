@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define TRANSMITTER 1
 #define RECEIVER 0
@@ -53,11 +54,12 @@ void time_out();
 
 void send_SET(int fd);
 void send_UA(int fd);
+void send_DISC(int fd);
 //-------------------------------------------------Data Link Layer --------------------------
 
 int LLWRITE(int fd, char *buffer, int length);
 
-int LLOPEN(int fd, int transmitter); //envia trama SET e recebe trama UA.
+int LLOPEN(int fd); //envia trama SET e recebe trama UA.
 int LLREAD(int fd, char *buffer);
 int LLCOSE(int fd);
 
