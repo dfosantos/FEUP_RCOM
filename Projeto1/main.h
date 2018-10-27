@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include "dataLink.h"
+
 
 #define TRANSMITTER 1
 #define RECEIVER 0
@@ -60,11 +60,11 @@ int LLWRITE(int fd, char *buffer, int length);
 
 int LLOPEN(int fd, int com_type); //Estabelece a comunicação
 int LLREAD(int fd, char *buffer);
-int LLCOSE(int fd);
+int LLCLOSE(int fd, int com_type);
 
 void send_SET(int fd);
-void send_UA(int fd);
-void send_DISC(int fd);
+void send_UA(int fd, int com_type);
+void send_DISC(int fd, int com_type);
 
 
 //-------------------------------------------Application Link Layer --------------------------

@@ -1,143 +1,22 @@
 /*Non-Canonical Input Processing*/
 #include "main.h"
 
-
+#include "dataLink.c"
 
 
 #define COM_TYPE RECEIVER
 
 volatile int STOP=FALSE;
-int flag=0;
-int TIMEOUT=0;
+
 int rej=0;
 int isStart=0;
 int isClose=0;
 
 
-void time_out() {
-    TIMEOUT++;
-    flag=1;
-
-}
-
-int LLOPEN(int fd, int com_type) {
-
-    if(com_type)
-    (void) signal(SIGALRM, time_out);
-    char address, address2;
-    unsigned char c;//last char received
-    int state = 0;
-
-    if(!com_type) {
-        printf("Receiving SET...\n");
-    }
-
-    while(TIMEOUT<3) {
-
-        if(com_type) {
-            send_SET(fd);
-            printf("Receiving UA...\n");
-            alarm(3);
-            flag=0;
-        }
 
 
-        while(state != 5 && flag==0 ) {
-
-            read(fd, &c, 1);
 
 
-            switch (state) {
-                
-            case 0://expecting flag
-                if(c == FLAG) {
-                    state = 1;
-                }//else stay in same state
-                break;
-            case 1://expecting A
-                if(com_type) {
-                    address=A_R;
-                }
-                else {
-                    address=A_T;
-                }
-                if(c == address) {
-                    state = 2;
-                } else if(c == FLAG) { //if not FLAG instead of A
-                    state = 1;
-
-                } else
-                    state=0;//else stay in same state
-                break;
-
-            case 2:
-                if(com_type) {
-                    address2=UA;
-                }
-                else {
-                    address2=SET;
-                }
-                if(c == address2) {
-                    state = 3;
-                } else if(c == FLAG) { //if FLAG received
-                    state = 1;
-                } else {//else go back to beggining
-                    state = 0;
-                }
-                break;
-            case 3://Expecting BCC
-                if (c == address^address2) {
-                    state = 4;
-                } else {
-                    state = 0;//else go back to beggining
-                }
-                break;
-            case 4://Expecting FLAG
-                if (c == FLAG) {
-                    state = 5;
-                    if (!com_type) {
-                        send_UA(fd);
-                    }
-                    printf("Ligacao Estabelecida! :)\n");
-                    return fd;
-                } else {
-                    state = 0;//else go back to beggining
-                }
-                break;
-            }
-        }
-    }
-
-    printf("TIMEOUT - Ligacao Não Estabelecida\n");
-    return -1;
-}
-void send_UA(int fd) {
-
-    char trama_UA[5];
-    trama_UA[0]=FLAG;
-    trama_UA[1]=A_R;
-    trama_UA[2]=UA;
-    trama_UA[3]=A_R^UA;
-    trama_UA[4]=FLAG;
-
-    write(fd, trama_UA, 5);
-    fflush(NULL);
-
-}
-void send_SET(int fd) {
-
-    char trama[5];
-    trama[0]=FLAG;
-    trama[1]=A_T;
-    trama[2]=SET;
-    trama[3]=A_T^SET;
-    trama[4]=FLAG;
-
-    write(fd, trama, 5);
-    fflush(NULL);
-
-
-}
 
 int LLWRITE(int fd, char *buffer, int length) {
     fflush(NULL);
@@ -313,114 +192,8 @@ return length;
 
 }
 
-void send_DISC(int fd) {
-
-    char trama[5];
-    trama[0]=FLAG;
-	if(COM_TYPE)
-		trama[1]=A_T;
-	else{
-		trama[1] = A_R;
-	}
-    trama[2]=DISC;
-    trama[3]=A_T^DISC;
-    trama[4]=FLAG;
-
-    write(fd, trama, 5);
-    fflush(NULL);
-
-}
-int LLCOSE(int fd) {
-
-	char address;
-	int state = 0;
-	char c;
-	if(COM_TYPE){
-		send_DISC(fd);
-	}
-	
-	if(COM_TYPE)
-	while(TIMEOUT<3 || !COM_TYPE) {
-		if(COM_TYPE) {
-            
-            printf("Receiving DISC...\n");
-			
-			if(COM_TYPE){
-	            alarm(3);
-			}
-
-            flag=0;
-        }
 
 
-        while(state != 5 && flag==0 ) {
-
-            read(fd, &c, 1);
-
-
-            switch (state) {
-            case 0://expecting flag
-                if(c == FLAG) {
-                    state = 1;
-                }//else stay in same state
-                break;
-            case 1://expecting A
-                if(COM_TYPE) {
-                    address=A_R;
-                }
-                else {
-                    address=A_T;
-                }
-                if(c == address) {
-                    state = 2;
-                } else if(c == FLAG) { //if not FLAG instead of A
-                    state = 1;
-
-                } else
-                    state=0;//else stay in same state
-                break;
-
-            case 2:
-              
-                if(c == DISC) {
-                    state = 3;
-                } else if(c == FLAG) { //if FLAG received
-                    state = 1;
-                } else {//else go back to beggining
-                    state = 0;
-                }
-                break;
-            case 3://Expecting BCC
-                if (c == address^DISC) {
-                    state = 4;
-                } else {
-                    state = 0;//else go back to beggining
-                }
-                break;
-            case 4://Expecting FLAG
-                if (c == FLAG) {
-                    state = 5;
-                    if (!COM_TYPE) {
-                        send_DISC(fd);
-						                   
-					}
-					else if(COM_TYPE){
-					send_UA(fd);
-					printf("Ligação encerrada!");
-					return 1; 
-					}
-                } else {
-                    state = 0;//else go back to beggining
-                }
-                break;
-            }
-        }
-    }
-
-
-
-    return -1;
-}
 FILE *openfile(char* filename){
 
 	FILE *file;
@@ -512,10 +285,11 @@ int main(int argc, char** argv) {
 
 
     fflush(NULL);
-   	if(LLOPEN(fd , 1)==-1) return -1;
+  	if(LLOPEN(fd , COM_TYPE)==-1) return -1;
+	
 	
     //IMPLEMENTAR DIVISÃO OCTETOS
-   /* if(isStart) {
+    if(COM_TYPE) {
         fflush(NULL);
         //Preparar buffer start
         char teste [6];
@@ -526,20 +300,18 @@ int main(int argc, char** argv) {
         teste[4] = 'L';
         teste[5] = 'A';
 
-
-        write(fd,teste,6);
         LLWRITE(fd,teste,6);
-    }*/
+    }
 
-    char buffer [20];
+  /*  char buffer [20];
 	int length = LLREAD(fd, buffer);
 	int j;
 	for(j=0 ; j<length ; j++){
 
 		printf("char[%d] : %x\n", j , buffer[j]);
 	}	
-	
-	//LLCLOSE(fd);
+	*/
+	LLCLOSE(fd, COM_TYPE);
 
 
 
