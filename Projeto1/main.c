@@ -20,21 +20,21 @@ void time_out() {
 
 }
 
-int LLOPEN(int fd) {
+int LLOPEN(int fd, int com_type) {
 
-    if(COM_TYPE)
+    if(com_type)
     (void) signal(SIGALRM, time_out);
     char address, address2;
     unsigned char c;//last char received
     int state = 0;
 
-    if(!COM_TYPE) {
+    if(!com_type) {
         printf("Receiving SET...\n");
     }
 
     while(TIMEOUT<3) {
 
-        if(COM_TYPE) {
+        if(com_type) {
             send_SET(fd);
             printf("Receiving UA...\n");
             alarm(3);
@@ -55,7 +55,7 @@ int LLOPEN(int fd) {
                 }//else stay in same state
                 break;
             case 1://expecting A
-                if(COM_TYPE) {
+                if(com_type) {
                     address=A_R;
                 }
                 else {
@@ -71,7 +71,7 @@ int LLOPEN(int fd) {
                 break;
 
             case 2:
-                if(COM_TYPE) {
+                if(com_type) {
                     address2=UA;
                 }
                 else {
@@ -95,7 +95,7 @@ int LLOPEN(int fd) {
             case 4://Expecting FLAG
                 if (c == FLAG) {
                     state = 5;
-                    if (!COM_TYPE) {
+                    if (!com_type) {
                         send_UA(fd);
                     }
                     printf("Ligacao Estabelecida! :)\n");
@@ -440,7 +440,15 @@ int main(int argc, char** argv) {
     int fd,c, res;
 
 
-    
+    /*«	//OPEN FILE
+    	FILE *ptr;
+    	ptr = fopen("penguin.gif","rb");
+    	unsigned char *buffer;
+    	unsigned long int filesize;
+
+    	fseek(ptr,0,SEEK_END);
+    	fread(buffer,   , 1 , ptr);
+    */
     struct termios oldtio,newtio;
     char buf[255];
     int i, sum = 0, speed = 0;
@@ -504,7 +512,7 @@ int main(int argc, char** argv) {
 
 
     fflush(NULL);
-   	if(LLOPEN(fd)==-1) return -1;
+   	if(LLOPEN(fd , 1)==-1) return -1;
 	
     //IMPLEMENTAR DIVISÃO OCTETOS
    /* if(isStart) {

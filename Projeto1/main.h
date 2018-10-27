@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include "dataLink.h"
 
 #define TRANSMITTER 1
 #define RECEIVER 0
@@ -57,7 +58,7 @@ void time_out();
 
 int LLWRITE(int fd, char *buffer, int length);
 
-int LLOPEN(int fd); //envia trama SET e recebe trama UA.
+int LLOPEN(int fd, int com_type); //Estabelece a comunicação
 int LLREAD(int fd, char *buffer);
 int LLCOSE(int fd);
 
