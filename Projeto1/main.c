@@ -4,8 +4,8 @@
 
 
 
+#define COM_TYPE RECEIVER
 
-#define COM_TYPE TRANSMITTER
 volatile int STOP=FALSE;
 int flag=0;
 int TIMEOUT=0;
@@ -440,15 +440,7 @@ int main(int argc, char** argv) {
     int fd,c, res;
 
 
-    /*«	//OPEN FILE
-    	FILE *ptr;
-    	ptr = fopen("penguin.gif","rb");
-    	unsigned char *buffer;
-    	unsigned long int filesize;
-
-    	fseek(ptr,0,SEEK_END);
-    	fread(buffer,   , 1 , ptr);
-    */
+    
     struct termios oldtio,newtio;
     char buf[255];
     int i, sum = 0, speed = 0;

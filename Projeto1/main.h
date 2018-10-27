@@ -52,9 +52,7 @@
 void time_out();
 
 
-void send_SET(int fd);
-void send_UA(int fd);
-void send_DISC(int fd);
+
 //-------------------------------------------------Data Link Layer --------------------------
 
 int LLWRITE(int fd, char *buffer, int length);
@@ -63,7 +61,10 @@ int LLOPEN(int fd); //envia trama SET e recebe trama UA.
 int LLREAD(int fd, char *buffer);
 int LLCOSE(int fd);
 
-int state_machine(int fd,char *trama, int flag, int transmitter, int trama_type, char controlo);
+void send_SET(int fd);
+void send_UA(int fd);
+void send_DISC(int fd);
+
 
 //-------------------------------------------Application Link Layer --------------------------
 
