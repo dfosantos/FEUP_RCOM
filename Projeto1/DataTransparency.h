@@ -30,6 +30,7 @@ char *DataTransparency(char *databuffer,int length, int com_type){
 				i++;
 			}
 		}
+		newbuffer[i]=BCC2;
 	}
 	else{
 		for (i=0;i<length;i++){
@@ -50,7 +51,9 @@ char *DataTransparency(char *databuffer,int length, int com_type){
 				char *newbuffer = realloc(newbuffer, length);
 			}
 			BCC2^=newbuffer[i];
-		}			
+		}
+		newbuffer[i]=BCC2;			
 	}
+
 return newbuffer;
 }
