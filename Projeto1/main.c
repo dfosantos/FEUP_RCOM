@@ -2,97 +2,11 @@
 #include "main.h"
 
 #include "dataLink.c"
-
-volatile int STOP=FALSE;
-
+#define CHUNK_SIZE 50 	//Número de caracteres do ficheiro a ser enviado de cada vez
 extern int rej; //Variável que controla RR0/RR1 ou REJ0/REJ1
-int isStart=0;
-int isClose=0;
 
 
 
-
-
-
-
-
-
-
-int LLREAD(int fd, char *buffer) {
-
-    int length=0;;
-	int state = 0;
-	unsigned char c;
-	char controlo;
-	
-   if(rej==0) {		
-        
-        controlo = RR0;
-				
-		
-    }
-    else if(rej==1) {
-        
-        controlo = RR1;
-    }
-
-		
-		while(state != 5) {
-
-		        read(fd, &c, 1);
-			
-		       switch (state) {
-		        case 0://expecting flag
-		            if(c == FLAG) {
-		                state = 1;
-		            }//else stay in same state
-		            break;
-		        case 1://expecting A
-
-		            if(c == A_T) {
-		                state = 2;
-		            } else if(c == FLAG) { //if not FLAG instead of A
-		                state = 1;
-
-		            } else
-		                state=0;//else stay in same state
-		            break;
-
-		        case 2://Expecting C_SET
-
-		            if(c == controlo) {
-		                state = 3;
-		            } else if(c == FLAG) { //if FLAG received
-		                state = 1;
-		            } else {//else go back to beggining
-		                state = 0;
-		            }
-		            break;
-		        case 3://Expecting BCC
-		            if (c == A_T^controlo) {
-		                state = 4;
-		            } else {
-		                state = 0;//else go back to beggining
-		            }
-		            break;
-		        case 4://Expecting FLAG
-					if( c == FLAG){
-						state = 5;
-					}
-					else{
-						buffer[length] = c;		
-						length++;			
-					}
-					
-					//printf("buffer[%d] : %c\n", length , buffer[length]);
-		            break;
-		        }
-		    }
-   	
-
-return length;
-
-}
 
 int LLWRITE(int fd, char *buffer, int length) {
 	
@@ -138,7 +52,7 @@ int LLWRITE(int fd, char *buffer, int length) {
         while(state != 5 && flag==0 ) {
 			
             read(fd, &c, 1);
-			printf("Caracter lido: %x\nState:%d\n", c, state);
+			
 
             switch (state) {
             case 0://expecting flag
@@ -210,11 +124,12 @@ FILE *openfile(char* filename, int com_type){
 
 int main(int argc, char** argv) {
     fflush(NULL);
-    int fd,c, res;
+    int fd, res;
 	
 	//Tipo de comunicação: Sender (1) or Receiver (0)
 	int com_type;
 
+	int status = 0;
   
     struct termios oldtio,newtio;
     char buf[255];
@@ -289,22 +204,26 @@ int main(int argc, char** argv) {
 */
   	if(LLOPEN(fd , com_type)==-1) return -1;		//Estabelecimento da comunicação
 	
+	FILE *file;
+	
+	if(com_type){
+		file=openfile("teste.txt", com_type);
+	}
 	
 	
-	
-    //IMPLEMENTAR DIVISÃO OCTETOS
+    
     if(com_type) {
         fflush(NULL);
         //Preparar buffer start
-        char teste [6];
-        teste[0] = 'O';
-        teste[1] = 'L';
-        teste[2] = 'A';
-        teste[3] = 'O';
-        teste[4] = 'L';
-        teste[5] = 'A';
-
-        LLWRITE(fd,teste,6);
+		
+      
+		char buffer[CHUNK_SIZE];
+			
+		while (fscanf(file, "%s", buffer)!=EOF){
+			printf("String: %s\n",buffer);
+		}
+		
+        LLWRITE(fd,buffer,CHUNK_SIZE);
     }
 	
 	if(!com_type){

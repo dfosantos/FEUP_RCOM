@@ -99,7 +99,81 @@ int LLOPEN(int fd, int com_type) {
     return -1;
 }
 
+int LLREAD(int fd, char *buffer) {
 
+    int length=0;;
+	int state = 0;
+	unsigned char c;
+	char controlo;
+	
+   if(rej==0) {		
+        
+        controlo = RR0;
+				
+		
+    }
+    else if(rej==1) {
+        
+        controlo = RR1;
+    }
+
+		
+		while(state != 5) {
+
+		        read(fd, &c, 1);
+			
+		       switch (state) {
+		        case 0://expecting flag
+		            if(c == FLAG) {
+		                state = 1;
+		            }//else stay in same state
+		            break;
+		        case 1://expecting A
+
+		            if(c == A_T) {
+		                state = 2;
+		            } else if(c == FLAG) { //if not FLAG instead of A
+		                state = 1;
+						
+		            } else
+		                state=0;//else stay in same state
+		            break;
+
+		        case 2://Expecting C_SET
+
+		            if(c == controlo) {
+		                state = 3;
+		            } else if(c == FLAG) { //if FLAG received
+		                state = 1;
+		            } else {//else go back to beggining
+		                state = 0;
+		            }
+		            break;
+		        case 3://Expecting BCC
+		            if (c == A_T^controlo) {
+		                state = 4;
+		            } else {
+		                state = 0;//else go back to beggining
+		            }
+		            break;
+		        case 4://Expecting FLAG
+					if( c == FLAG){
+						state = 5;
+					}
+					else{
+						buffer[length] = c;		
+						length++;			
+					}
+					
+					//printf("buffer[%d] : %c\n", length , buffer[length]);
+		            break;
+		        }
+		    }
+   	
+
+return length;
+
+}
 
 int LLCLOSE(int fd, int com_type) {
 

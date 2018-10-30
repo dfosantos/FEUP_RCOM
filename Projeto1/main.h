@@ -55,11 +55,16 @@ void time_out();
 
 
 //-------------------------------------------------Data Link Layer --------------------------
+//Retorna nr de chars escritos. -1 em caso de erro
+int LLWRITE(int fd, char *buffer, int length);	
 
-int LLWRITE(int fd, char *buffer, int length);
-
+//Retorna 1 ou -1(erro)
 int LLOPEN(int fd, int com_type); //Estabelece a comunicação
+
+//Retorna número de chars de Data lidos
 int LLREAD(int fd, char *buffer);
+
+//Retorna 1 ou -1 (erro)
 int LLCLOSE(int fd, int com_type);
 
 void send_SET(int fd);
