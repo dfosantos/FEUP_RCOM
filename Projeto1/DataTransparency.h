@@ -9,10 +9,12 @@ char *DataTransparency(char *databuffer,int length, int com_type){
 	int i=0;
 	char c;
 	char aux, aux2;
+	char BCC2=0x00;
 	char *newbuffer = malloc((length)*sizeof(char));
 	if(com_type){
 		for (i=0;i<length;i++){
 			c=databuffer[i];
+			BCC2^⁼c;
 			newbuffer[i]=c;
 			if(c==FlAG){
 				length++;
@@ -47,6 +49,7 @@ char *DataTransparency(char *databuffer,int length, int com_type){
 				length--;
 				char *newbuffer = realloc(newbuffer, length);
 			}
+			BCC2^=newbuffer[i];
 		}			
 	}
 return newbuffer;
