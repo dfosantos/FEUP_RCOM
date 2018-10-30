@@ -1,15 +1,15 @@
 /*Non-Canonical Input Processing*/
 #include "main.h"
-
+#include "DataTransparency.h"
 #include "dataLink.c"
-#define CHUNK_SIZE 50 	//Número de caracteres do ficheiro a ser enviado de cada vez
+#define CHUNK_SIZE 15 	//Número de caracteres do ficheiro a ser enviado de cada vez
 extern int rej; //Variável que controla RR0/RR1 ou REJ0/REJ1
 
 
 
 
 int LLWRITE(int fd, char *buffer, int length) {
-	
+		
     fflush(NULL);
     TIMEOUT = 0;
     char *trama = malloc((length+5)*sizeof(char));
@@ -38,9 +38,9 @@ int LLWRITE(int fd, char *buffer, int length) {
         trama[i]=buffer[i-4];
     }
 
-
+	
     written = write(fd, trama, length + 5);
-
+	written = written-5;
     //ESPERAR PELO ACK
     (void) signal(SIGALRM, time_out);
     TIMEOUT = 0;
@@ -124,16 +124,18 @@ FILE *openfile(char* filename, int com_type){
 
 int main(int argc, char** argv) {
     fflush(NULL);
-    int fd, res;
+    int fd;
 	
 	//Tipo de comunicação: Sender (1) or Receiver (0)
 	int com_type;
 
+	//status = 0	||	START
+	//status = 1	||	MIDDLE
+	//status = 2	||	STOP
 	int status = 0;
   
     struct termios oldtio,newtio;
-    char buf[255];
-    int i, sum = 0, speed = 0;
+ 
 	
     if ( (argc < 2) ||
             (
@@ -218,25 +220,36 @@ int main(int argc, char** argv) {
 		
       
 		char buffer[CHUNK_SIZE];
-			
-		while (fscanf(file, "%s", buffer)!=EOF){
+		int size;
+		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){
 			printf("String: %s\n",buffer);
-		}
-		
-        LLWRITE(fd,buffer,CHUNK_SIZE);
+			
+			status = 1;
+			if(status == 1){
+				
+				//buffer = DataTransparency(buffer, 50 , com_type);
+				int dataWritten = LLWRITE(fd,buffer,CHUNK_SIZE);
+			
+				if( dataWritten != CHUNK_SIZE){
+					status = 2;
+					break;
+				}
+				
+			}
+			
+		}		
+        
     }
 	
 	if(!com_type){
-		char buffer [20];
+		char buffer [CHUNK_SIZE];
+		
 		int length = LLREAD(fd, buffer);
 		//supor que está bem (para teste) e envia o ACK:
 		send_RR(fd);
-		int j;
-		
-		for(j=0 ; j<length ; j++){
 	
-			printf("char[%d] : %c\n", j , buffer[j]);
-		}	
+		printf("%s\n", buffer);
+		
 		
 	}
 	

@@ -121,7 +121,6 @@ int LLREAD(int fd, char *buffer) {
 		while(state != 5) {
 
 		        read(fd, &c, 1);
-			
 		       switch (state) {
 		        case 0://expecting flag
 		            if(c == FLAG) {
@@ -140,7 +139,7 @@ int LLREAD(int fd, char *buffer) {
 		            break;
 
 		        case 2://Expecting C_SET
-
+					
 		            if(c == controlo) {
 		                state = 3;
 		            } else if(c == FLAG) { //if FLAG received
