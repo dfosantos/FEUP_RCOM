@@ -3,8 +3,8 @@
 #include "DataTransparency.h"
 #include "dataLink.c"
 #define CHUNK_SIZE 50 	//Número de caracteres do ficheiro a ser enviado de cada vez
-extern int Nr; //Variável que controla RR0/RR1 ou REJ0/REJ1
-
+extern int Nr; //Variável que controla RR0/RR1 
+extern int Ns; //Variável que controla REJ0/REJ1
 
 
 
@@ -221,22 +221,23 @@ int main(int argc, char** argv) {
       
 		char buffer[CHUNK_SIZE];
 		int size;
+		int stuffing;
+
 		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){
 			printf("String: %s\n",buffer);
 			
-			status = 1;
-			if(status == 1){
-				
-				//buffer = DataTransparency(buffer, 50 , com_type);
+		
+				if((stuffing = DataTransparency(buffer, size, com_type)) == 1){
+					size=size+stuffing;
+				}
+
 				int dataWritten = LLWRITE(fd,buffer,CHUNK_SIZE);
 			
 				if( dataWritten != CHUNK_SIZE){
-					status = 2;
+
 					break;
 				}
-				
-			}
-			
+
 		}		
         
     }

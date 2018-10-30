@@ -363,7 +363,26 @@ void send_RR(int fd){
 	
 }
 void send_REJ(int fd){
+	char controlo;
+	if(Nr==0) {
+        
+		Nr = 1;
+        controlo = REJ0;
+    }
+    else if(Nr==1) {
+       	Nr = 0;
+        controlo = REJ1;
+    }
+	
+	char trama[5];
+    trama[0]=FLAG;
+    trama[1]=A_T;
+    trama[2]=controlo;
+    trama[3]=A_T^controlo;
+    trama[4]=FLAG;
 
+    write(fd, trama, 5);
+    fflush(NULL);
 	
 }
 
