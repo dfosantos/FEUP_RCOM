@@ -1,7 +1,7 @@
 
 int flag=0;
 int TIMEOUT=0;
-
+int rej=0;
 
 void time_out() {
     TIMEOUT++;
@@ -98,6 +98,9 @@ int LLOPEN(int fd, int com_type) {
     printf("TIMEOUT - Ligação Não Estabelecida\n");
     return -1;
 }
+
+
+
 int LLCLOSE(int fd, int com_type) {
 
 	char address;
@@ -210,6 +213,7 @@ int LLCLOSE(int fd, int com_type) {
 
     return -1;
 }
+
 void send_UA(int fd, int com_type) {
 
     char trama_UA[5];
@@ -228,6 +232,7 @@ void send_UA(int fd, int com_type) {
     fflush(NULL);
 
 }
+
 void send_SET(int fd) {
 
     char trama[5];
@@ -241,6 +246,7 @@ void send_SET(int fd) {
     fflush(NULL);
 
 }
+
 void send_DISC(int fd, int com_type) {
 
     char trama[5];
@@ -258,3 +264,32 @@ void send_DISC(int fd, int com_type) {
     fflush(NULL);
 	
 }
+
+void send_RR(int fd){
+	
+	char controlo;
+	if(rej==0) {
+        
+        controlo = RR0;
+    }
+    else if(rej==1) {
+       
+        controlo = RR1;
+    }
+	
+	char trama[5];
+    trama[0]=FLAG;
+    trama[1]=A_T;
+    trama[2]=controlo;
+    trama[3]=A_T^controlo;
+    trama[4]=FLAG;
+
+    write(fd, trama, 5);
+    fflush(NULL);
+	
+}
+
+
+
+
+

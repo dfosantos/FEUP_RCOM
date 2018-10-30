@@ -3,12 +3,9 @@
 
 #include "dataLink.c"
 
-
-#define COM_TYPE RECEIVER
-
 volatile int STOP=FALSE;
 
-int rej=0;
+extern int rej; //Variável que controla RR0/RR1 ou REJ0/REJ1
 int isStart=0;
 int isClose=0;
 
@@ -18,102 +15,7 @@ int isClose=0;
 
 
 
-int LLWRITE(int fd, char *buffer, int length) {
-    fflush(NULL);
-    TIMEOUT = 0;
-    char *trama = malloc((length+5)*sizeof(char));
-    char controlo;
-    char c;
-    int i, written, state = 0;
 
-    if(rej==0) {
-        rej==1;
-        controlo = RR1;
-    }
-    else if(rej==1) {
-        rej=0;
-        controlo = RR0;
-    }
-
-
-    //Prepara bytes iniciais
-    trama[0] = FLAG;
-    trama[1] = A_T;
-    trama[2] = controlo;
-    trama[3] = trama[1]^trama[2];
-    trama[length+4] = FLAG ;
-
-    for(i = 4 ; i < length + 4 ; i++) {
-        trama[i]=buffer[i-4];
-    }
-
-
-    written = write(fd, trama, length + 5);
-
-    //ESPERAR PELO ACK
-    (void) signal(SIGALRM, time_out);
-    TIMEOUT = 0;
-    while(TIMEOUT<3) {
-
-        alarm(3);
-        flag=0;
-
-        while(state != 5 && flag==0 ) {
-
-            read(fd, &c, 1);
-
-
-            switch (state) {
-            case 0://expecting flag
-                if(c == FLAG) {
-                    state = 1;
-                }//else stay in same state
-                break;
-            case 1://expecting A
-
-                if(c == A_T) {
-                    state = 2;
-                } else if(c == FLAG) { //if not FLAG instead of A
-                    state = 1;
-
-                } else
-                    state=0;//else stay in same state
-                break;
-
-            case 2://Expecting C_SET
-
-                if(c == controlo) {
-                    state = 3;
-                } else if(c == FLAG) { //if FLAG received
-                    state = 1;
-                } else {//else go back to beggining
-                    state = 0;
-                }
-                break;
-            case 3://Expecting BCC
-                if (c == A_T^controlo) {
-                    state = 4;
-                } else {
-                    state = 0;//else go back to beggining
-                }
-                break;
-            case 4://Expecting FLAG
-                if (c == FLAG) {
-                    state = 5;
-                    return written;
-
-                } else {
-                    state = 0;//else go back to beggining
-                }
-                break;
-            }
-        }
-    }
-    free(trama);
-    printf("TIMEOUT - Escrita não Realizada\n");
-    return -1;
-
-}
 
 
 int LLREAD(int fd, char *buffer) {
@@ -124,14 +26,14 @@ int LLREAD(int fd, char *buffer) {
 	char controlo;
 	
    if(rej==0) {		
-        rej=1;
-        controlo = RR1;
+        
+        controlo = RR0;
 				
 		
     }
     else if(rej==1) {
-        rej=0;
-        controlo = RR0;
+        
+        controlo = RR1;
     }
 
 		
@@ -192,12 +94,110 @@ return length;
 
 }
 
+int LLWRITE(int fd, char *buffer, int length) {
+	
+    fflush(NULL);
+    TIMEOUT = 0;
+    char *trama = malloc((length+5)*sizeof(char));
+    char controlo;
+    char c;
+    int i, written, state = 0;
+
+    if(rej==0) {
+        
+        controlo = RR0;
+    }
+    else if(rej==1) {
+        
+        controlo = RR1;
+    }
 
 
-FILE *openfile(char* filename){
+    //Prepara bytes iniciais
+    trama[0] = FLAG;
+    trama[1] = A_T;
+    trama[2] = controlo;
+    trama[3] = trama[1]^trama[2];
+    trama[length+4] = FLAG ;
+
+    for(i = 4 ; i < length + 4 ; i++) {
+        trama[i]=buffer[i-4];
+    }
+
+
+    written = write(fd, trama, length + 5);
+
+    //ESPERAR PELO ACK
+    (void) signal(SIGALRM, time_out);
+    TIMEOUT = 0;
+    while(TIMEOUT<3) {
+
+        alarm(3);
+        flag=0;
+
+        while(state != 5 && flag==0 ) {
+			
+            read(fd, &c, 1);
+			printf("Caracter lido: %x\nState:%d\n", c, state);
+
+            switch (state) {
+            case 0://expecting flag
+                if(c == FLAG) {
+                    state = 1;
+                }//else stay in same state
+                break;
+            case 1://expecting A
+
+                if(c == A_T) {
+                    state = 2;
+                } else if(c == FLAG) { //if not FLAG instead of A
+                    state = 1;
+
+                } else
+                    state=0;//else stay in same state
+                break;
+
+            case 2://Expecting RR
+
+                if(c == controlo) {
+                    state = 3;
+                } else if(c == FLAG) { //if FLAG received
+                    state = 1;
+                } else {//else go back to beggining
+                    state = 0;
+                }
+                break;
+            case 3://Expecting BCC
+                if (c == A_T^controlo) {
+                    state = 4;
+                } else {
+                    state = 0;//else go back to beggining
+                }
+                break;
+            case 4://Expecting FLAG
+                if (c == FLAG) {
+                    state = 5;
+                    return written;
+
+                } else {
+                    state = 0;//else go back to beggining
+                }
+                break;
+            }
+        }
+    }
+    free(trama);
+    printf("TIMEOUT - Escrita não Realizada\n");
+    return -1;
+
+}
+
+
+
+FILE *openfile(char* filename, int com_type){
 
 	FILE *file;
-	if(COM_TYPE) file=fopen(filename, "rb");
+	if(com_type) file=fopen(filename, "rb");
 	else file=fopen(filename, "wb");
 	
 	if(file==NULL){
@@ -211,33 +211,36 @@ FILE *openfile(char* filename){
 int main(int argc, char** argv) {
     fflush(NULL);
     int fd,c, res;
+	
+	//Tipo de comunicação: Sender (1) or Receiver (0)
+	int com_type;
 
-
-    /*«	//OPEN FILE
-    	FILE *ptr;
-    	ptr = fopen("penguin.gif","rb");
-    	unsigned char *buffer;
-    	unsigned long int filesize;
-
-    	fseek(ptr,0,SEEK_END);
-    	fread(buffer,   , 1 , ptr);
-    */
+  
     struct termios oldtio,newtio;
     char buf[255];
     int i, sum = 0, speed = 0;
-
+	
     if ( (argc < 2) ||
-            ((strcmp("/dev/ttyS0", argv[1])!=0) &&
-             (strcmp("/dev/ttyS1", argv[1])!=0) )) {
+            (
+			(strcmp("/dev/ttyS0", argv[1])!=0) && (strcmp("/dev/ttyS1", argv[1])!=0) )) {
         printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
         exit(1);
     }
+	
+	if((argc < 3) ||
+			 ( (strcmp("sender", argv[2])!=0) && (strcmp("receiver", argv[2])!=0))){
+				printf("Specify if 'sender' or 'receiver'\n");
+				exit(1);
+			}
 
-
-    /*
-      Open serial port device for reading and writing and not as controlling tty
-      because we don't want to get killed if linenoise sends CTRL-C.
-    */
+	else{
+		if(strcmp("sender", argv[2])==0){
+			com_type = 1;
+		}
+		else if(strcmp("receiver", argv[2])==0){
+			com_type = 0;
+		}
+	}
 
 
     fd = open(argv[1], O_RDWR | O_NOCTTY );
@@ -264,13 +267,6 @@ int main(int argc, char** argv) {
 
 
 
-    /*
-      VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a
-      leitura do(s) próximo(s) caracter(es)
-    */
-
-
-
     tcflush(fd, TCIOFLUSH);
 
     if ( tcsetattr(fd,TCSANOW,&newtio) == -1) {
@@ -280,16 +276,24 @@ int main(int argc, char** argv) {
 
     printf("New termios structure set\n");
 
-
-    /*testing*/
-
-
     fflush(NULL);
-  	if(LLOPEN(fd , COM_TYPE)==-1) return -1;
+	
+	
+/*-------------------------------------------------------------
+---------------------------------------------------------------
+---------------------------------------------------------------
+----------------Início da Comunicação--------------------------
+---------------------------------------------------------------
+---------------------------------------------------------------
+---------------------------------------------------------------
+*/
+  	if(LLOPEN(fd , com_type)==-1) return -1;		//Estabelecimento da comunicação
+	
+	
 	
 	
     //IMPLEMENTAR DIVISÃO OCTETOS
-    if(COM_TYPE) {
+    if(com_type) {
         fflush(NULL);
         //Preparar buffer start
         char teste [6];
@@ -302,24 +306,26 @@ int main(int argc, char** argv) {
 
         LLWRITE(fd,teste,6);
     }
+	
+	if(!com_type){
+		char buffer [20];
+		int length = LLREAD(fd, buffer);
+		//supor que está bem (para teste) e envia o ACK:
+		send_RR(fd);
+		int j;
+		
+		for(j=0 ; j<length ; j++){
+	
+			printf("char[%d] : %c\n", j , buffer[j]);
+		}	
+		
+	}
+	
+	LLCLOSE(fd, com_type);
 
-  /*  char buffer [20];
-	int length = LLREAD(fd, buffer);
-	int j;
-	for(j=0 ; j<length ; j++){
-
-		printf("char[%d] : %x\n", j , buffer[j]);
-	}	
-	*/
-	LLCLOSE(fd, COM_TYPE);
 
 
-
-    /*
-      O ciclo FOR e as instruções seguintes devem ser alterados de modo a respeitar
-      o indicado no guião
-    */
-
+   
 
 
 
