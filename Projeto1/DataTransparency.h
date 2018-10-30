@@ -5,7 +5,7 @@
 #define replace7D 0x5D
 #include <stdlib.h>
 
-char *DataTransparency(char *databuffer,int length, int com_type){
+void DataTransparency(char *databuffer,int length, int com_type){
 	int i=0;
 	char c;
 	char aux, aux2;
@@ -14,7 +14,7 @@ char *DataTransparency(char *databuffer,int length, int com_type){
 	if(com_type){
 		for (i=0;i<length;i++){
 			c=databuffer[i];
-			BCC2^⁼c;
+			BCC2^=c;
 			newbuffer[i]=c;
 			if(c==FlAG){
 				length++;
@@ -30,7 +30,6 @@ char *DataTransparency(char *databuffer,int length, int com_type){
 				i++;
 			}
 		}
-		newbuffer[i]=BCC2;
 	}
 	else{
 		for (i=0;i<length;i++){
@@ -51,9 +50,7 @@ char *DataTransparency(char *databuffer,int length, int com_type){
 				char *newbuffer = realloc(newbuffer, length);
 			}
 			BCC2^=newbuffer[i];
-		}
-		newbuffer[i]=BCC2;			
+		}			
 	}
-
-return newbuffer;
+	databuffer = newbuffer;
 }

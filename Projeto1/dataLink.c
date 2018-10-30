@@ -1,7 +1,7 @@
 
 int flag=0;
 int TIMEOUT=0;
-int rej=0;
+int Nr=0;
 
 void time_out() {
     TIMEOUT++;
@@ -106,13 +106,13 @@ int LLREAD(int fd, char *buffer) {
 	unsigned char c;
 	char controlo;
 	
-   if(rej==0) {		
+   if(Nr==0) {		
         
         controlo = RR0;
 				
 		
     }
-    else if(rej==1) {
+    else if(Nr==1) {
         
         controlo = RR1;
     }
@@ -341,12 +341,13 @@ void send_DISC(int fd, int com_type) {
 void send_RR(int fd){
 	
 	char controlo;
-	if(rej==0) {
+	if(Nr==0) {
         
+		Nr = 1;
         controlo = RR0;
     }
-    else if(rej==1) {
-       
+    else if(Nr==1) {
+       	Nr = 0;
         controlo = RR1;
     }
 	
@@ -359,6 +360,10 @@ void send_RR(int fd){
 
     write(fd, trama, 5);
     fflush(NULL);
+	
+}
+void send_REJ(int fd){
+
 	
 }
 

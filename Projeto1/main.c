@@ -2,8 +2,8 @@
 #include "main.h"
 #include "DataTransparency.h"
 #include "dataLink.c"
-#define CHUNK_SIZE 15 	//Número de caracteres do ficheiro a ser enviado de cada vez
-extern int rej; //Variável que controla RR0/RR1 ou REJ0/REJ1
+#define CHUNK_SIZE 50 	//Número de caracteres do ficheiro a ser enviado de cada vez
+extern int Nr; //Variável que controla RR0/RR1 ou REJ0/REJ1
 
 
 
@@ -17,11 +17,11 @@ int LLWRITE(int fd, char *buffer, int length) {
     char c;
     int i, written, state = 0;
 
-    if(rej==0) {
+    if(Nr==0) {
         
         controlo = RR0;
     }
-    else if(rej==1) {
+    else if(Nr==1) {
         
         controlo = RR1;
     }
@@ -242,11 +242,23 @@ int main(int argc, char** argv) {
     }
 	
 	if(!com_type){
+
 		char buffer [CHUNK_SIZE];
 		
-		int length = LLREAD(fd, buffer);
-		//supor que está bem (para teste) e envia o ACK:
-		send_RR(fd);
+		int length;
+		
+		while( (length = LLREAD(fd, buffer) )> 0){
+
+			printf("buffer antes do stuffing: %s\n", buffer);
+			DataTransparency(buffer, length, com_type);
+			printf("buffer depois do stuffing: %s\n", buffer);
+			//IF para testar buffer
+			send_RR(fd);
+	
+
+		}	
+
+
 	
 		printf("%s\n", buffer);
 		
