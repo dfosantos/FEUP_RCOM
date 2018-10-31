@@ -360,6 +360,7 @@ void send_RR(int fd){
 
     write(fd, trama, 5);
     fflush(NULL);
+printf("sending RR\tNr=%d\n",Nr);
 	
 }
 void send_REJ(int fd){
@@ -383,7 +384,21 @@ void send_REJ(int fd){
 
     write(fd, trama, 5);
     fflush(NULL);
+	printf("sending REJ\tNr=%d\n",Nr);
+}
+
+int check_BCC2 (char * buffer, int length){
 	
+	BCC2=0x00
+	int i;
+	for(i = 0 ; i < length-1; i++ ){		
+		BCC2^=buffer[i];
+	}
+	if (BCC2==buffer[i]){
+		return 1;
+	}
+
+	return 0;
 }
 
 
