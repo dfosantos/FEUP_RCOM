@@ -219,17 +219,18 @@ int main(int argc, char** argv) {
         //Preparar buffer start
 		
       
-		char buffer[CHUNK_SIZE];
+		char buffer[CHUNK_SIZE] = "\0";
 		int size;
 		int stuffing;
 
 		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){
-			printf("String: %s\n",buffer);
+		
 			
 		
 				if((stuffing = DataTransparency(buffer, size, com_type)) == 1){
 					size=size+stuffing;
 				}
+				printf("String depois do stuffing : %s\n", buffer);
 
 				int dataWritten = LLWRITE(fd,buffer,CHUNK_SIZE);
 			
