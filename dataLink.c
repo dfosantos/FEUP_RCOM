@@ -434,7 +434,7 @@ unsigned char* byte_destuffing(unsigned char* msg, int* length){
 
 	}
 	*length = new_length;
-	free(msg);
+	
 	return str;
 }
 
@@ -444,8 +444,9 @@ unsigned char* byte_stuffing(unsigned char* msg, int* length){
 	int j=0;
 	unsigned int array_length = *length;
 	str = (unsigned char *) malloc(array_length);
+	char BCC2=0x00;
 	for(; i < *length; i++, j++){
-
+		BCC2^=msg[i];
 		if(j >= array_length){
 			array_length = array_length+(array_length/2);
 			str = (unsigned char*) realloc(str, array_length);
@@ -465,9 +466,10 @@ unsigned char* byte_stuffing(unsigned char* msg, int* length){
 			str[j] = msg[i];
 		}
 	}
-	*length = j;
-	
-
+	*length = j++;
+	array_length++;
+	str = (unsigned char*) realloc(str, array_length);
+	str[j]=BCC2;
 	return str;
 }
 
