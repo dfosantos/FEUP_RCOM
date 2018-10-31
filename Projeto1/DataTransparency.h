@@ -5,7 +5,7 @@
 #define REPLACE7D 0x5D
 #include <stdlib.h>
 
-int DataTransparency(char *databuffer,int length, int com_type){
+char *DataTransparency(char *databuffer,int length, int com_type){
 	int j,i=0;
 
 
@@ -86,9 +86,21 @@ int DataTransparency(char *databuffer,int length, int com_type){
 				
 			}	
 
-			else if(cpybuffer[i] == FLAG2 && cpybuffer[i+1] == REPLACE7D){
+			else if(cpybuffer[i] == FLAG2 && cpybuffer[i+1] == REPLACE7D){		//Destuffing 7D
 
+				for(j = 0 ; j<=length-i  ; j++){
+					
+					shiftbuffer = realloc(shiftbuffer, j+1);
+					shiftbuffer[j]=cpybuffer[i+j+2];
+				}
+				
+				cpybuffer[i] = FLAG2;
+				length--;
 
+				for(j=0;j<sizeof(shiftbuffer);j++){
+					cpybuffer[i+j+1]=shiftbuffer[j];		
+				}		
+				cpybuffer = realloc (cpybuffer,length*sizeof(char));
 			
 
 			}
@@ -99,5 +111,6 @@ int DataTransparency(char *databuffer,int length, int com_type){
 
 	}
 	printf("cpybuffer: %s\n",cpybuffer);
-	return stuffing;
+	
+	return cpybuffer;
 }
