@@ -227,12 +227,10 @@ int main(int argc, char** argv) {
 		
 			
 		
-				if((stuffing = DataTransparency(buffer, size, com_type)) == 1){
-					size=size+stuffing;
-				}
-				printf("String depois do stuffing : %s\n", buffer);
 
-				int dataWritten = LLWRITE(fd,buffer,CHUNK_SIZE);
+				
+
+				int dataWritten = LLWRITE(fd,DataTransparency(buffer, size, com_type),CHUNK_SIZE);
 			
 				if( dataWritten != CHUNK_SIZE){
 
