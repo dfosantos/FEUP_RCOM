@@ -31,6 +31,7 @@ char *DataTransparency(char *databuffer,int length, int com_type){
 		
 
 			if(cpybuffer[i]==FLAG){
+				printf("Encontrou flag\n");
 				stuffing++;
 				for(j = 0 ; j<=length-i  ; j++){
 					
@@ -68,11 +69,11 @@ char *DataTransparency(char *databuffer,int length, int com_type){
 			}	
 		}
 
-		length++;
-		cpybuffer = realloc(cpybuffer, length);
+		//length++;
+		//cpybuffer = realloc(cpybuffer, length);
 		//printf("tamanho: %d\n",length);
-		BCC2 = 0x5A;
-		cpybuffer[i] = BCC2;
+		
+		//cpybuffer[i] = BCC2;
 		//printf("caracter na posição %d : %c\n",i,cpybuffer[i]);
 		//printf("CPYBUFFER:%s\n",cpybuffer);
 		
@@ -123,7 +124,7 @@ char *DataTransparency(char *databuffer,int length, int com_type){
 		}
 
 	}
-	printf("cpybuffer: %s\n",cpybuffer);
+	//printf("cpybuffer: %s\n",cpybuffer);
 	
 	return cpybuffer;
 }

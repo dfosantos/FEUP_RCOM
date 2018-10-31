@@ -1,4 +1,3 @@
-
 int flag=0;
 int TIMEOUT=0;
 int Nr=0;
@@ -7,6 +6,7 @@ void time_out() {
     TIMEOUT++;
     flag=1;
 }
+unsigned char* byte_destuffing(unsigned char* msg, int* length);
 int LLOPEN(int fd, int com_type) {
 
     if(com_type)
@@ -387,21 +387,88 @@ void send_REJ(int fd){
 	printf("sending REJ\tNr=%d\n",Nr);
 }
 
-int check_BCC2 (char * buffer, int length){
-	
-	char BCC2=0x00;
-	int i;
-	for(i = 0 ; i < length-1; i++ ){		
-		BCC2^=buffer[i];
+unsigned char* verify_bcc2(unsigned char* control_message, int* length){
+	unsigned char* destuffed_message = byte_destuffing(control_message, length);
+	int i=0;
+	unsigned char control_bcc2 = 0x00;
+	for(; i<*length-1; i++){
+		control_bcc2 ^= destuffed_message[i];
 	}
-	if (BCC2==buffer[i]){
-		return 1;
+	if(control_bcc2 != destuffed_message[*length-1]){
+		*length = -1;
+		return NULL;
 	}
+	*length = *length-1;
+	unsigned char* data_message = (unsigned char*) malloc(*length);
+	for(i=0; i<*length; i++){
+			data_message[i] = destuffed_message[i];
+	}
+	free(destuffed_message);
+	return data_message;
+}
+unsigned char* byte_destuffing(unsigned char* msg, int* length){
+	unsigned int array_length = 133;
+	unsigned char* str = (unsigned char*) malloc(array_length);
+	int i=0;
+	int new_length = 0;
 
-	return 0;
+	for(; i<*length; i++){
+		new_length++;
+		if(new_length >= array_length){
+			array_length = array_length+ (array_length/2);
+			str = (unsigned char *) realloc(str, array_length);
+		}
+		if(msg[i] == 0x7d){
+			if(msg[i+1] == 0x5e){
+				str[new_length-1] = 0x7e;
+				i++;
+			}
+	 		else if(msg[i+1] == 0x5d){
+				str[new_length -1] = 0x7d;
+				i++;
+			}
+		}
+		else{
+			str[new_length-1] = msg[i];
+		}
+
+	}
+	*length = new_length;
+	free(msg);
+	return str;
 }
 
+unsigned char* byte_stuffing(unsigned char* msg, int* length){
+	unsigned char* str;
+	int i=0;
+	int j=0;
+	unsigned int array_length = *length;
+	str = (unsigned char *) malloc(array_length);
+	for(; i < *length; i++, j++){
 
+		if(j >= array_length){
+			array_length = array_length+(array_length/2);
+			str = (unsigned char*) realloc(str, array_length);
 
+		}
+		if(msg[i] ==  0x7e){
+			str[j] = 0x7d;
+			str[j+1] = 0x5e;
+			j++;
+		}
+		else if(msg[i] == 0x7d){
+			str[j] = 0x7d;
+			str[j+1]= 0x5d;
+			j++;
+		}
+		else{
+			str[j] = msg[i];
+		}
+	}
+	*length = j;
+	free(msg);
+
+	return str;
+}
 
 

@@ -58,7 +58,9 @@ void time_out();
 //Retorna nr de chars escritos. -1 em caso de erro
 int LLWRITE(int fd, char *buffer, int length);	
 
-int check_BCC2 (char * buffer, int length);
+unsigned char* byte_destuffing(unsigned char* msg, int* length);
+unsigned char* byte_stuffing(unsigned char* msg, int* length);
+unsigned char* verify_bcc2(unsigned char* control_message, int* length);
 
 //Retorna 1 ou -1(erro)
 int LLOPEN(int fd, int com_type); //Estabelece a comunicação

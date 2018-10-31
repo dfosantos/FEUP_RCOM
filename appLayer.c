@@ -221,20 +221,18 @@ int main(int argc, char** argv) {
 		
       
 		char buffer[CHUNK_SIZE];
+		char *stuffed;
 		int size;
-		int stuffing;
+		
 int h=0;
 		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){
 				
 				
-				printf("iteração %d\n" ,h++);
-				int dataWritten = LLWRITE(fd,DataTransparency(buffer, size, com_type),CHUNK_SIZE+stuffing);
-				printf("iteração %s\n" ,DataTransparency(buffer, size, com_type));
 				
-				if( size != CHUNK_SIZE){
-
-					break;
-				}
+				stuffed = byte_stuffing(buffer, &size);
+					
+				LLWRITE(fd, stuffed, size);
+				
 
 		}		
         
@@ -243,20 +241,14 @@ int h=0;
 	if(!com_type){
 
 		char buffer [CHUNK_SIZE];
-		
+		char *destuffed;
 		int length;
 		
 		while( (length = LLREAD(fd, buffer) )> 0){
 
-			if(check_BCC2(DataTransparency(buffer, length, com_type), length)){
-				
-				//Guarda no ficheiro _TO DO
-				send_RR(fd);
-			}
+			destuffed = byte_destuffing(buffer, &length);
 		
-			else{
-				send_REJ(fd);
-			}
+			
 
 
 
