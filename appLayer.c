@@ -209,9 +209,8 @@ int main(int argc, char** argv) {
 	
 	FILE *file;
 	
-	if(com_type){
-		file=openfile("teste.txt", com_type);
-	}
+	
+		file=openfile("penguin.gif", com_type);
 	
 	
     
@@ -224,13 +223,15 @@ int main(int argc, char** argv) {
 		char *stuffed;
 		int size;
 		
-int h=0;
+		int h=0;
+
 		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){
-				
+
 				
 				
 				stuffed = byte_stuffing(buffer, &size);
-					
+
+				printf("Stuffed: %s\nSize: %d", stuffed, size);
 				LLWRITE(fd, stuffed, size);
 				
 
@@ -247,23 +248,11 @@ int h=0;
 		while( (length = LLREAD(fd, buffer) )> 0){
 
 			destuffed = byte_destuffing(buffer, &length);
-		
-			
-
-
-
-
-
-			
-			
-			
-			send_RR(fd);
 	
-
+			send_RR(fd);
+			if(lenght<CHUNK_SIZE)break;
 		}	
-
-
-		
+		fclose(file);
 	}
 	
 	LLCLOSE(fd, com_type);

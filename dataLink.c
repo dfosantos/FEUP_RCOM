@@ -6,7 +6,7 @@ void time_out() {
     TIMEOUT++;
     flag=1;
 }
-unsigned char* byte_destuffing(unsigned char* msg, int* length);
+
 int LLOPEN(int fd, int com_type) {
 
     if(com_type)
@@ -466,7 +466,7 @@ unsigned char* byte_stuffing(unsigned char* msg, int* length){
 		}
 	}
 	*length = j;
-	free(msg);
+	
 
 	return str;
 }
