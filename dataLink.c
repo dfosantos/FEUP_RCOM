@@ -98,6 +98,126 @@ int LLOPEN(int fd, int com_type) {
     printf("TIMEOUT - Ligação Não Estabelecida\n");
     return -1;
 }
+FILE *openfile(char* filename, int com_type){
+
+	FILE *file;
+	if(com_type) file=fopen(filename, "rb");
+	else file=fopen(filename, "wb");
+	
+	if(file==NULL){
+		printf("Erro a abrir o ficheiro %s", filename);
+		return NULL;
+	}
+	
+	return file;
+}
+int LLWRITE(int fd, char *buffer, int length) {
+		
+    fflush(NULL);
+    TIMEOUT = 0;
+    char *trama = malloc((length+5)*sizeof(char));
+    char controlo;
+    char c;
+    int i, written, state = 0;
+
+    if(Nr==0) {
+        
+        controlo = RR0;
+    }
+    else if(Nr==1) {
+        
+        controlo = RR1;
+    }
+
+
+    //Prepara bytes iniciais
+    trama[0] = FLAG;
+    trama[1] = A_T;
+    trama[2] = controlo;
+    trama[3] = trama[1]^trama[2];
+    trama[length+4] = FLAG ;
+
+    for(i = 4 ; i < length + 4 ; i++) {
+        trama[i]=buffer[i-4];
+    }
+
+	
+    
+    //ESPERAR PELO ACK
+    (void) signal(SIGALRM, time_out);
+    TIMEOUT = 0;
+    while(TIMEOUT<3) {
+		
+		written = write(fd, trama, length + 5);
+		written = written-5;
+
+
+        alarm(3);
+        flag=0;
+		state=0;
+        while(state != 5 && flag==0 ) {
+			
+            read(fd, &c, 1);
+			
+
+            switch (state) {
+            case 0://expecting flag
+                if(c == FLAG) {
+                    state = 1;
+                }//else stay in same state
+                break;
+            case 1://expecting A
+
+                if(c == A_T) {
+                    state = 2;
+                } else if(c == FLAG) { //if not FLAG instead of A
+                    state = 1;
+
+                } else
+                    state=0;//else stay in same state
+                break;
+
+            case 2://Expecting RR
+
+                if(c == controlo) {
+					Nr=!Nr;
+				//	Ns=!Ns;
+                    state = 3;
+				}
+				/*else if( c == REJ0 || c == REJ1){
+					state = 0;
+					flag = 1;
+				
+                } */else if(c == FLAG) { //if FLAG received
+                    state = 1;
+                } else {//else go back to beggining
+                    state = 0;
+                }
+                break;
+            case 3://Expecting BCC
+                if (c == A_T^controlo) {
+                    state = 4;
+                } else {
+                    state = 0;//else go back to beggining
+                }
+                break;
+            case 4://Expecting FLAG
+                if (c == FLAG) {
+                    state = 5;
+                    return written;
+
+                } else {
+                    state = 0;//else go back to beggining
+                }
+                break;
+            }
+        }
+    }
+    free(trama);
+    printf("TIMEOUT - Escrita não Realizada\n");
+    return -1;
+
+}
 
 int LLREAD(int fd, char *buffer) {
 
@@ -171,6 +291,8 @@ int LLREAD(int fd, char *buffer) {
    	
 
 return length;
+
+
 
 }
 

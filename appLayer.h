@@ -59,15 +59,15 @@ void time_out();
 int LLWRITE(int fd, char *buffer, int length);	
 
 unsigned char* byte_destuffing(unsigned char* msg, int* length);
-unsigned char* byte_stuffing(unsigned char* msg, int* length);
-unsigned char* verify_bcc2(unsigned char* control_message, int* length);
 
+unsigned char* verify_bcc2(unsigned char* control_message, int* length);
+FILE *openfile(char* filename, int com_type);
 //Retorna 1 ou -1(erro)
 int LLOPEN(int fd, int com_type); //Estabelece a comunicação
 
 //Retorna número de chars de Data lidos
 int LLREAD(int fd, char *buffer);
-
+unsigned char* byte_stuffing(unsigned char* msg, int* length);
 //Retorna 1 ou -1 (erro)
 int LLCLOSE(int fd, int com_type);
 
