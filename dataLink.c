@@ -1,6 +1,9 @@
+#include "dataLink.h"
+
 int flag=0;
 int TIMEOUT=0;
 int Nr=0;
+
 
 void time_out() {
     TIMEOUT++;
@@ -102,6 +105,8 @@ FILE *openfile(char* filename, int com_type){
 
 	FILE *file;
 	if(com_type) file=fopen(filename, "rb");
+	
+	
 	else file=fopen(filename, "wb");
 	
 	if(file==NULL){
@@ -116,7 +121,7 @@ int LLWRITE(int fd, char *buffer, int length) {
     fflush(NULL);
     TIMEOUT = 0;
     char *trama = malloc((length+5)*sizeof(char));
-    char controlo;
+    char controlo, controloREJ;
     char c;
     int i, written, state = 0;
 
@@ -150,7 +155,7 @@ int LLWRITE(int fd, char *buffer, int length) {
 		
 		written = write(fd, trama, length + 5);
 		written = written-5;
-
+		printf("LLWRITE - Trama escrito\n");
 
         alarm(3);
         flag=0;
@@ -184,11 +189,12 @@ int LLWRITE(int fd, char *buffer, int length) {
 				//	Ns=!Ns;
                     state = 3;
 				}
-				/*else if( c == REJ0 || c == REJ1){
+				else if( c == REJ0 || c == REJ1){
+					printf("REJ recebido\n");
 					state = 0;
 					flag = 1;
 				
-                } */else if(c == FLAG) { //if FLAG received
+                } else if(c == FLAG) { //if FLAG received
                     state = 1;
                 } else {//else go back to beggining
                     state = 0;
@@ -482,18 +488,18 @@ void send_RR(int fd){
 
     write(fd, trama, 5);
     fflush(NULL);
-printf("sending RR\tNr=%d\n",Nr);
+	printf("RR Sent\tNr=%d\n",Nr);
 	
 }
 void send_REJ(int fd){
 	char controlo;
 	if(Nr==0) {
         
-		Nr = 1;
+		
         controlo = REJ0;
     }
     else if(Nr==1) {
-       	Nr = 0;
+       
         controlo = REJ1;
     }
 	
@@ -506,16 +512,19 @@ void send_REJ(int fd){
 
     write(fd, trama, 5);
     fflush(NULL);
-	printf("sending REJ\tNr=%d\n",Nr);
+	printf("REJ Sent\n");
 }
 
 unsigned char* verify_bcc2(unsigned char* control_message, int* length){
-	unsigned char* destuffed_message = byte_destuffing(control_message, length);
+	unsigned char* destuffed_message = destuffing(control_message, length);
+
 	int i=0;
 	unsigned char control_bcc2 = 0x00;
 	for(; i<*length-1; i++){
 		control_bcc2 ^= destuffed_message[i];
+		
 	}
+	
 	if(control_bcc2 != destuffed_message[*length-1]){
 		*length = -1;
 		return NULL;
@@ -526,9 +535,13 @@ unsigned char* verify_bcc2(unsigned char* control_message, int* length){
 			data_message[i] = destuffed_message[i];
 	}
 	free(destuffed_message);
+	
+
 	return data_message;
 }
-unsigned char* byte_destuffing(unsigned char* msg, int* length){
+
+unsigned char* destuffing(unsigned char* msg, int* length){
+	
 	unsigned int array_length = 133;
 	unsigned char* str = (unsigned char*) malloc(array_length);
 	int i=0;
@@ -542,7 +555,7 @@ unsigned char* byte_destuffing(unsigned char* msg, int* length){
 		}
 		if(msg[i] == 0x7d){
 			if(msg[i+1] == 0x5e){
-				str[new_length-1] = 0x7e;
+				str[new_length-1] = FLAG;
 				i++;
 			}
 	 		else if(msg[i+1] == 0x5d){
@@ -560,38 +573,53 @@ unsigned char* byte_destuffing(unsigned char* msg, int* length){
 	return str;
 }
 
-unsigned char* byte_stuffing(unsigned char* msg, int* length){
+unsigned char* stuffing(unsigned char* msg, int* length){
+	
 	unsigned char* str;
+	unsigned char* msg_aux;
 	int i=0;
 	int j=0;
 	unsigned int array_length = *length;
+
 	str = (unsigned char *) malloc(array_length);
+	msg_aux = (unsigned char *) malloc(array_length);
 	char BCC2=0x00;
 	for(; i < *length; i++, j++){
 		BCC2^=msg[i];
+		msg_aux[i] = msg[i];
+	}
+	
+	array_length++;
+	msg_aux = (unsigned char*) realloc(msg_aux,array_length);
+	msg_aux[array_length-1/*index = length-1*/]=BCC2;
+	
+	for(i=0,j=0; i < *length+1; i++, j++){
+		
 		if(j >= array_length){
 			array_length = array_length+(array_length/2);
 			str = (unsigned char*) realloc(str, array_length);
 
 		}
-		if(msg[i] ==  0x7e){
+		if(msg_aux[i] ==  FLAG){
 			str[j] = 0x7d;
 			str[j+1] = 0x5e;
 			j++;
 		}
-		else if(msg[i] == 0x7d){
+		else if(msg_aux[i] == 0x7d){
 			str[j] = 0x7d;
 			str[j+1]= 0x5d;
 			j++;
 		}
 		else{
-			str[j] = msg[i];
+			str[j] = msg_aux[i];
 		}
 	}
-	*length = j++;
-	array_length++;
-	str = (unsigned char*) realloc(str, array_length);
-	str[j]=BCC2;
+	
+	
+	
+	*length=j;
+	//printf("bcc da string com length %d depois de stuffing: %X (este bcc pode ter sofrido stuffing)\n",*length,str[*length-1]);
+	
 	return str;
 }
 

@@ -1,6 +1,6 @@
 /*Non-Canonical Input Processing*/
-#include "appLayer.h"
-#include "dataLink.c"
+#include "dataLink.h"
+
 #define CHUNK_SIZE 50	//Número de caracteres do ficheiro a ser enviado de cada vez
 extern int Nr; //Variável que controla RR0/RR1 
 extern int Ns; //Variável que controla REJ0/REJ1
@@ -42,6 +42,9 @@ int main(int argc, char** argv) {
 		}
 		else if(strcmp("receiver", argv[2])==0){
 			com_type = 0;
+		}
+		else{
+			printf("Specify if 'sender' or 'receiver'\n");
 		}
 	}
 
@@ -94,14 +97,16 @@ int main(int argc, char** argv) {
 	
 	FILE *file;
 	
-	
-		file=openfile("penguin.gif", com_type);
-	
-	
+
+			
+
     
     if(com_type) {
+		
+		file=openfile("penguin.gif", com_type);
+		
         fflush(NULL);
-        //Preparar buffer start
+        
 		
       
 		char buffer[CHUNK_SIZE];
@@ -109,15 +114,17 @@ int main(int argc, char** argv) {
 		int size;
 		
 		int h=0;
-		printf("A enviar...\n\n");
+		printf("A enviar...\n");
 		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){
 
 				
+			
+				stuffed = stuffing(buffer, &size);
 				
-				stuffed = byte_stuffing(buffer, &size);
-
-		//		printf("Stuffed: %s\nSize: %d", stuffed, size);
+	
+				
 				LLWRITE(fd, stuffed, size);
+				
 				
 
 		}		
@@ -125,26 +132,32 @@ int main(int argc, char** argv) {
     }
 	
 	if(!com_type){
-
+		
+		file=openfile("penguinReceived.gif", com_type);
 		char buffer [CHUNK_SIZE];
 		char *destuffed;
 		
 		int length;
-		
+		printf("A receber...\n");
 		while( (length = LLREAD(fd, buffer) )> 0){
 
 			
-			destuffed = byte_destuffing(buffer, &length);
-	
-				send_RR(fd);			
+			destuffed = verify_bcc2(buffer, &length);
+				
+				if(destuffed == NULL)
+					send_REJ(fd);
+				else{
+					send_RR(fd);
+					fwrite(destuffed,1,length,file);
+				}
 			
-			fwrite(destuffed,1,length,file);
 			
 
-			if(length<CHUNK_SIZE)break;
+			if(length<CHUNK_SIZE && length>0)break;
 		}	
-
+		
 		fclose(file);
+		printf("Ficheiro recebido!\n");
 	}
 	
 	LLCLOSE(fd, com_type);
