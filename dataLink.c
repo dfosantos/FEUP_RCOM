@@ -26,7 +26,6 @@ int LLOPEN(int fd, int com_type) {
 
         if(com_type) {
             send_SET(fd);
-            printf("Esperando UA...\n");
             alarm(3);
 			flag=0;
         }
@@ -155,7 +154,7 @@ int LLWRITE(int fd, char *buffer, int length) {
 		
 		written = write(fd, trama, length + 5);
 		written = written-5;
-		printf("LLWRITE - Trama escrito\n");
+	
 
         alarm(3);
         flag=0;
@@ -290,7 +289,7 @@ int LLREAD(int fd, char *buffer) {
 						length++;			
 					}
 					
-					//printf("buffer[%d] : %c\n", length , buffer[length]);
+					
 		            break;
 		        }
 		    }
@@ -310,24 +309,17 @@ int LLCLOSE(int fd, int com_type) {
 	int receiveUA = 0;
 	
 	
-	if(com_type){
+	if(com_type)
 		send_DISC(fd, com_type);
-		printf("DISC enviado\n");
-	}
+		
 	
 	
 	
 	while(TIMEOUT<3 || !com_type) {
 		
 		if(com_type) {
-            
-            printf("À espera de DISC...\n");
-			
-			if(com_type){
-	            alarm(3);
-			}
-
-            flag=0;
+			alarm(3);
+			flag=0;
         }
 
 
@@ -386,18 +378,18 @@ int LLCLOSE(int fd, int com_type) {
                     state = 5;
                     if (!com_type && receiveUA == 0) {
                         send_DISC(fd, com_type);
-						printf("DISC enviado\nRecebendo UA...\n"); 
+						
 						state = 0;
 						receiveUA = 1;
 					}
 					else if(com_type){
 						send_UA(fd, com_type);
-						printf("DISC recebido. UA enviado.\n");
+					
 						printf("Ligação encerrada!\n");
 					return 1; 
 					}
 					else if(receiveUA == 1){
-						printf("UA recebido\n");
+						
 						printf("Ligação encerrada!\n");
 						return 1;
 					}
@@ -488,7 +480,7 @@ void send_RR(int fd){
 
     write(fd, trama, 5);
     fflush(NULL);
-	printf("RR Sent\tNr=%d\n",Nr);
+	
 	
 }
 void send_REJ(int fd){
@@ -512,7 +504,7 @@ void send_REJ(int fd){
 
     write(fd, trama, 5);
     fflush(NULL);
-	printf("REJ Sent\n");
+	
 }
 
 unsigned char* verify_bcc2(unsigned char* control_message, int* length){
@@ -618,7 +610,7 @@ unsigned char* stuffing(unsigned char* msg, int* length){
 	
 	
 	*length=j;
-	//printf("bcc da string com length %d depois de stuffing: %X (este bcc pode ter sofrido stuffing)\n",*length,str[*length-1]);
+	
 	
 	return str;
 }

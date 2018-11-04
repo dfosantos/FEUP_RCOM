@@ -3,7 +3,7 @@
 
 #define CHUNK_SIZE 50	//Número de caracteres do ficheiro a ser enviado de cada vez
 extern int Nr; //Variável que controla RR0/RR1 
-extern int Ns; //Variável que controla REJ0/REJ1
+
 
 
 
@@ -159,6 +159,7 @@ int main(int argc, char** argv) {
 		fclose(file);
 		printf("Ficheiro recebido!\n");
 	}
+	
 	
 	LLCLOSE(fd, com_type);
 
