@@ -1,5 +1,5 @@
 /*Non-Canonical Input Processing*/
-#include "dataLink.h"
+#include "dataLink.c"
 
 
 #define CHUNK_SIZE 50	//Número de caracteres do ficheiro a ser enviado de cada vez
