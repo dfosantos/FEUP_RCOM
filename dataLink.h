@@ -82,6 +82,8 @@ void send_DISC(int fd, int com_type);
 void send_REJ(int fd);
 void send_RR(int fd);
 
+long getFileSize(FILE* file);
+
 
 //-------------------------Main APP--------------------------
 

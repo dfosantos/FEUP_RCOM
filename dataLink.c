@@ -103,13 +103,14 @@ int LLOPEN(int fd, int com_type) {
 FILE *openfile(char* filename, int com_type){
 
 	FILE *file;
+
 	if(com_type) file=fopen(filename, "rb");
 	
 	
 	else file=fopen(filename, "wb");
 	
 	if(file==NULL){
-		printf("Erro a abrir o ficheiro %s", filename);
+		printf("Erro a abrir o ficheiro %s\n", filename);
 		return NULL;
 	}
 	
@@ -580,7 +581,7 @@ unsigned char* stuffing(unsigned char* msg, int* length){
 		BCC2^=msg[i];
 		msg_aux[i] = msg[i];
 	}
-	
+
 	array_length++;
 	msg_aux = (unsigned char*) realloc(msg_aux,array_length);
 	msg_aux[array_length-1/*index = length-1*/]=BCC2;
@@ -607,12 +608,30 @@ unsigned char* stuffing(unsigned char* msg, int* length){
 		}
 	}
 	
-	
+
+
 	
 	*length=j;
-	
 	
 	return str;
 }
 
+long getFileSize(FILE* file) {
 
+	long currentPosition = ftell(file);
+
+	
+	if (fseek(file, 0, SEEK_END) == -1) {
+		printf("ERROR: Could not get file size.\n");
+		return -1;
+	}
+
+	
+	long size = ftell(file);
+
+	
+	fseek(file, 0, currentPosition);
+
+	
+	return size;
+}

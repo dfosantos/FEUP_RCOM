@@ -1,9 +1,9 @@
 /*Non-Canonical Input Processing*/
 #include "dataLink.h"
 
+
 #define CHUNK_SIZE 50	//Número de caracteres do ficheiro a ser enviado de cada vez
 extern int Nr; //Variável que controla RR0/RR1 
-
 
 
 
@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
 	
 	//Tipo de comunicação: Sender (1) or Receiver (0)
 	int com_type;
-
+	
 	//status = 0	||	START
 	//status = 1	||	MIDDLE
 	//status = 2	||	STOP
@@ -32,10 +32,13 @@ int main(int argc, char** argv) {
 	
 	if((argc < 3) ||
 			 ( (strcmp("sender", argv[2])!=0) && (strcmp("receiver", argv[2])!=0))){
-				printf("Specify if 'sender' or 'receiver'\n");
+				printf("Specify if 'sender' or 'receiver' and file name\n");
 				exit(1);
 			}
-
+	if(argc < 4 && strcmp(argv[2],"sender") == 0){
+		printf("Specify file name\n");
+		exit(1);
+	}
 	else{
 		if(strcmp("sender", argv[2])==0){
 			com_type = 1;
@@ -81,7 +84,6 @@ int main(int argc, char** argv) {
     }
 
     printf("New termios structure set\n");
-
     fflush(NULL);
 	
 	
@@ -98,49 +100,91 @@ int main(int argc, char** argv) {
 	FILE *file;
 	
 
-			
+
 
     
     if(com_type) {
-		
-		file=openfile("penguin.gif", com_type);
+			
+
+		file=openfile(argv[3], com_type);
 		
         fflush(NULL);
         
 		
-      
+		int file_name_size = strlen(argv[3]);
 		char buffer[CHUNK_SIZE];
 		char *stuffed;
 		int size;
 		
-		int h=0;
-		printf("A enviar...\n");
-		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){
-
 				
+		stuffed = stuffing(argv[3], &file_name_size);		//Stuff name
+		LLWRITE(fd, stuffed, file_name_size);				//Send name
+		
+		
+		int file_size=getFileSize(file);					//Get file size
+		printf("\nFile size = %d bytes\n\n",file_size);		
+		
+	
+		sprintf(buffer, "%d", file_size);
+		file_size = (int)strlen(buffer);
+
+		stuffed = stuffing(buffer, &file_size);			//Stuff size
+		
+		LLWRITE(fd, stuffed, file_size);				//Send size
+		printf("A enviar...\n\n");
+
+		
+		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){
 			
 				stuffed = stuffing(buffer, &size);
-				
-	
-				
 				LLWRITE(fd, stuffed, size);
-				
-				
-
 		}		
+		printf("Enviado\n");
         
     }
 	
 	if(!com_type){
 		
-		file=openfile("penguinReceived.gif", com_type);
+		
 		char buffer [CHUNK_SIZE];
 		char *destuffed;
-		
 		int length;
-		printf("A receber...\n");
+		int received_file_size=0;
+		//Read file name
+		while(1){
+			length = LLREAD(fd, buffer);	
+		
+			destuffed = verify_bcc2(buffer, &length);		
+			if(destuffed == NULL)
+					send_REJ(fd);
+			else{
+				send_RR(fd);
+				printf("\nFile Name: %s\n",destuffed);
+				file=openfile(destuffed, com_type);	
+				break;
+			}
+			
+		}
+		
+		//Read file size
+		while(received_file_size == 0){
+			length = LLREAD(fd, buffer);					
+			destuffed = verify_bcc2(buffer, &length);
+		
+			if(destuffed == NULL)
+					send_REJ(fd);
+			else{
+				send_RR(fd);
+				received_file_size = atoi(destuffed);
+				printf("Size: %d\n\n",received_file_size);				
+			}
+		}
+		
+	
+		printf("A receber...\n\n");
+		
+		
 		while( (length = LLREAD(fd, buffer) )> 0){
-
 			
 			destuffed = verify_bcc2(buffer, &length);
 				
@@ -150,14 +194,14 @@ int main(int argc, char** argv) {
 					send_RR(fd);
 					fwrite(destuffed,1,length,file);
 				}
-			
-			
+				
 
 			if(length<CHUNK_SIZE && length>0)break;
 		}	
 		
+		printf("%ld de %d bytes recebidos\nFicheiro recebido com sucesso!\n\n", getFileSize(file),received_file_size);
 		fclose(file);
-		printf("Ficheiro recebido!\n");
+		
 	}
 	
 	
