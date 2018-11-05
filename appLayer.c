@@ -15,14 +15,10 @@ int main(int argc, char** argv) {
 	//Tipo de comunicação: Sender (1) or Receiver (0)
 	int com_type;
 	
-	//status = 0	||	START
-	//status = 1	||	MIDDLE
-	//status = 2	||	STOP
-	int status = 0;
   
     struct termios oldtio,newtio;
  
-	
+
     if ( (argc < 2) ||
             (
 			(strcmp("/dev/ttyS0", argv[1])!=0) && (strcmp("/dev/ttyS1", argv[1])!=0) )) {
@@ -83,7 +79,7 @@ int main(int argc, char** argv) {
         exit(-1);
     }
 
-    printf("New termios structure set\n");
+    //printf("New termios structure set\n\n");
     fflush(NULL);
 	
 	
@@ -95,13 +91,15 @@ int main(int argc, char** argv) {
 ---------------------------------------------------------------
 ---------------------------------------------------------------
 */
-  	if(LLOPEN(fd , com_type)==-1) return -1;		//Estabelecimento da comunicação
+	printf("\n");
+  	struct timeval start, stop;
+	double secs = 0;
 	
+
+	if(LLOPEN(fd , com_type)==-1) exit(1);		//Estabelecimento da comunicação
+	gettimeofday(&start, NULL);
+
 	FILE *file;
-	
-
-
-
     
     if(com_type) {
 			
@@ -118,28 +116,37 @@ int main(int argc, char** argv) {
 		
 				
 		stuffed = stuffing(argv[3], &file_name_size);		//Stuff name
-		LLWRITE(fd, stuffed, file_name_size);				//Send name
+		if(LLWRITE(fd, stuffed, file_name_size)==-1)		//Send name
+			exit(1);				
 		
 		
 		int file_size=getFileSize(file);					//Get file size
 		printf("\nFile size = %d bytes\n\n",file_size);		
 		
+		
 	
 		sprintf(buffer, "%d", file_size);
-		file_size = (int)strlen(buffer);
+		size = (int)strlen(buffer);
 
-		stuffed = stuffing(buffer, &file_size);			//Stuff size
+		stuffed = stuffing(buffer, &size);			//Stuff size
 		
-		LLWRITE(fd, stuffed, file_size);				//Send size
+		if(LLWRITE(fd, stuffed, size)==-1)			//Send size
+			exit(1);				
 		printf("A enviar...\n\n");
 
 		
 		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){
 			
 				stuffed = stuffing(buffer, &size);
-				LLWRITE(fd, stuffed, size);
+				if(LLWRITE(fd, stuffed, size)==-1)
+					exit(1);
 		}		
 		printf("Enviado\n");
+		gettimeofday(&stop, NULL);	
+		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
+		printf("\nEstatística:\n");
+		printf("Tempo de envio = %.2fs\n",secs);
+		printf("Débito binário = %.0f KB/s\n", file_size/secs);
         
     }
 	
@@ -160,7 +167,7 @@ int main(int argc, char** argv) {
 			else{
 				send_RR(fd);
 				printf("\nFile Name: %s\n",destuffed);
-				file=openfile(destuffed, com_type);	
+				file=openfile("penguinReceived.gif", com_type);	
 				break;
 			}
 			
@@ -200,14 +207,19 @@ int main(int argc, char** argv) {
 		}	
 		
 		printf("%ld de %d bytes recebidos\nFicheiro recebido com sucesso!\n\n", getFileSize(file),received_file_size);
+		gettimeofday(&stop, NULL);		
+		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
+		printf("\nEstatística:\n");
+		printf("Tempo de envio = %.2fs\n",secs);
+		printf("Débito binário = %.0f KB/s\n", received_file_size/secs);
 		fclose(file);
 		
 	}
 	
 	
 	LLCLOSE(fd, com_type);
-
-
+	
+	
 
    
 

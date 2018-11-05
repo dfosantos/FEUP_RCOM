@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <sys/time.h>
 
 #define TRANSMITTER 1
 #define RECEIVER 0

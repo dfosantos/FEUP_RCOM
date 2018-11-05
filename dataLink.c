@@ -7,6 +7,7 @@ int Nr=0;
 
 void time_out() {
     TIMEOUT++;
+	printf("Timeout number: %d\n", TIMEOUT);
     flag=1;
 }
 
@@ -19,12 +20,14 @@ int LLOPEN(int fd, int com_type) {
     int state = 0;
 
     if(!com_type) {
-        printf("Esperando SET...\n");
+        printf("Esperando emissor...\n");
     }
-
+	else
+		printf("Esperando recetor... ");
     while(TIMEOUT<3) {
 
         if(com_type) {
+			
             send_SET(fd);
             alarm(3);
 			flag=0;
@@ -156,11 +159,12 @@ int LLWRITE(int fd, char *buffer, int length) {
 		written = write(fd, trama, length + 5);
 		written = written-5;
 	
-
+		
         alarm(3);
         flag=0;
 		state=0;
         while(state != 5 && flag==0 ) {
+
 			
             read(fd, &c, 1);
 			
