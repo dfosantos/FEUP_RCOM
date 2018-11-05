@@ -214,7 +214,7 @@ int main(int argc, char** argv) {
 		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 		printf("\nEstatística:\n");
 		printf("Tempo de envio = %.2fs\n",secs);
-		printf("Débito binário = %.0f KB/s\n\n", received_file_size/secs);
+		printf("Débito binário = %.0f bps\n\n", received_file_size/secs);
 		fclose(file);
 		
 	}
