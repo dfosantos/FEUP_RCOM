@@ -55,7 +55,7 @@ int LLOPEN(int fd, int com_type) {
                 }
                 if(c == address) {
                     state = 2;
-                } else if(c == FLAG) { //if not FLAG instead of A
+                } else if(c == FLAG) {  //if FLAG received stay in the same state
                     state = 1;
 
                 } else
@@ -71,7 +71,7 @@ int LLOPEN(int fd, int com_type) {
                 }
                 if(c == address2) {
                     state = 3;
-                } else if(c == FLAG) { //if FLAG received
+                } else if(c == FLAG) {  //if FLAG received go back to previous state
                     state = 1;
                 } else {//else go back to beggining
                     state = 0;
@@ -179,18 +179,17 @@ int LLWRITE(int fd, char *buffer, int length) {
 
                 if(c == A_T) {
                     state = 2;
-                } else if(c == FLAG) { //if not FLAG instead of A
+                } else if(c == FLAG) { //if FLAG received stay in the same state
                     state = 1;
 
                 } else
-                    state=0;//else stay in same state
+                    state=0;//else go back to beggining
                 break;
 
-            case 2://Expecting RR
+            case 2:
 
-                if(c == controlo) {
+                if(c == controlo) {//Expecting RR
 					Nr=!Nr;
-				//	Ns=!Ns;
                     state = 3;
 				}
 				else if( c == REJ0 || c == REJ1){
@@ -198,7 +197,7 @@ int LLWRITE(int fd, char *buffer, int length) {
 					state = 0;
 					flag = 1;
 				
-                } else if(c == FLAG) { //if FLAG received
+                } else if(c == FLAG) {  //if FLAG received go back to previous state
                     state = 1;
                 } else {//else go back to beggining
                     state = 0;
@@ -261,18 +260,18 @@ int LLREAD(int fd, char *buffer) {
 
 		            if(c == A_T) {
 		                state = 2;
-		            } else if(c == FLAG) { //if not FLAG instead of A
-		                state = 1;
+		            } else if(c == FLAG) { //if FLAG received stay in the same state
+		                state = 1; 
 						
 		            } else
-		                state=0;//else stay in same state
+		                state=0;//else go back to beggining
 		            break;
 
-		        case 2://Expecting C_SET
+		        case 2://Expecting RR
 					
 		            if(c == controlo) {
 		                state = 3;
-		            } else if(c == FLAG) { //if FLAG received
+		            } else if(c == FLAG) { //if FLAG received go back to previous state
 		                state = 1;
 		            } else {//else go back to beggining
 		                state = 0;
@@ -347,7 +346,6 @@ int LLCLOSE(int fd, int com_type) {
                 }
                 if(c == address) {
                     state = 2;
-                } else if(c == FLAG) { //if not FLAG instead of A
                     state = 1;
 
                 } else
@@ -356,9 +354,9 @@ int LLCLOSE(int fd, int com_type) {
 
             case 2:
               
-                if(c == DISC) {
+                if(c == DISC) { //expecting DISC
                     state = 3;
-                } else if(c == FLAG) { //if FLAG received
+                } else if(c == FLAG) {  //if FLAG received go back to previous state
                     state = 1;
                 } 
 				else if(c == UA && receiveUA == 1){

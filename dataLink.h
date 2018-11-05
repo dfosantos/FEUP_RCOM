@@ -85,6 +85,6 @@ void send_RR(int fd);
 long getFileSize(FILE* file);
 
 
-//-------------------------Main APP--------------------------
+//-----------------------------------------------Main APP-----------------------------------
 
 int main(int argc, char** argv);
