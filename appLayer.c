@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
 		
 		if(LLWRITE(fd, stuffed, size)==-1)			//Send size
 			exit(1);				
-		printf("A enviar...\n\n");
+		printf("A enviar...");
 
 		
 		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){
@@ -141,12 +141,12 @@ int main(int argc, char** argv) {
 				if(LLWRITE(fd, stuffed, size)==-1)
 					exit(1);
 		}		
-		printf("Enviado\n");
+		printf("Ficheiro enviado!\n");
 		gettimeofday(&stop, NULL);	
 		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 		printf("\nEstatística:\n");
 		printf("Tempo de envio = %.2fs\n",secs);
-		printf("Débito binário = %.0f KB/s\n", file_size/secs);
+		printf("Débito binário = %.0f KB/s\n\n", file_size/secs);
         
     }
 	
@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
 			else{
 				send_RR(fd);
 				printf("\nFile Name: %s\n",destuffed);
-				file=openfile("penguinReceived.gif", com_type);	
+				file=openfile(destuffed, com_type);	
 				break;
 			}
 			
@@ -211,7 +211,7 @@ int main(int argc, char** argv) {
 		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 		printf("\nEstatística:\n");
 		printf("Tempo de envio = %.2fs\n",secs);
-		printf("Débito binário = %.0f KB/s\n", received_file_size/secs);
+		printf("Débito binário = %.0f KB/s\n\n", received_file_size/secs);
 		fclose(file);
 		
 	}
