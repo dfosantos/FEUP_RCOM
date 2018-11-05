@@ -6,7 +6,8 @@ int Nr=0;
 
 
 void time_out() {
-printf("Timeout number %d\n", TIMEOUT+1);
+	
+printf("Timeout\n");
     TIMEOUT++;
 	
     flag=1;
@@ -25,7 +26,7 @@ int LLOPEN(int fd, int com_type) {
     }
 	else
 		printf("Esperando recetor... ");
-    while(TIMEOUT<=3) {
+    while(TIMEOUT<3) {
 
         if(com_type) {
 			
@@ -137,7 +138,8 @@ int LLWRITE(int fd, char *buffer, int length) {
         
         controlo = RR1;
     }
-
+	
+	//Nr=!Nr;
 
     //Prepara bytes iniciais
     trama[0] = FLAG;
@@ -155,21 +157,21 @@ int LLWRITE(int fd, char *buffer, int length) {
     //ESPERAR PELO ACK
     (void) signal(SIGALRM, time_out);
     TIMEOUT = 0;
-    while(TIMEOUT<=3) {
+    while(TIMEOUT<10) {
 		
 		written = write(fd, trama, length + 5);
 		written = written-5;
-	
+		printf("RR = %x\n",trama[2]);
 		
-        alarm(3);
+        alarm(1);
         flag=0;
 		state=0;
         while(state != 5 && flag==0 ) {
 
 			
             read(fd, &c, 1);
-			
-	//printf("error not here\n");
+			printf("%x\t %d\n",c,state);
+
             switch (state) {
             case 0://expecting flag
                 if(c == FLAG) {
@@ -190,7 +192,7 @@ int LLWRITE(int fd, char *buffer, int length) {
             case 2:
 
                 if(c == controlo) {//Expecting RR
-					Nr=!Nr;
+					
                     state = 3;
 				}
 				else if( c == REJ0 || c == REJ1){
@@ -207,6 +209,7 @@ int LLWRITE(int fd, char *buffer, int length) {
             case 3://Expecting BCC
                 if (c == A_T^controlo) {
                     state = 4;
+
                 } else {
                     state = 0;//else go back to beggining
                 }
@@ -214,6 +217,7 @@ int LLWRITE(int fd, char *buffer, int length) {
             case 4://Expecting FLAG
                 if (c == FLAG) {
                     state = 5;
+					Nr=!Nr;
                     return written;
 
                 } else {
@@ -320,7 +324,7 @@ int LLCLOSE(int fd, int com_type) {
 	
 	
 	
-	while(TIMEOUT<=3 || !com_type) {
+	while(TIMEOUT<3 || !com_type) {
 		
 		if(com_type) {
 			alarm(3);
@@ -491,12 +495,11 @@ void send_RR(int fd){
 void send_REJ(int fd){
 	char controlo;
 	if(Nr==0) {
-        
-		
+		Nr=!Nr;
         controlo = REJ0;
     }
     else if(Nr==1) {
-       
+   		Nr=!Nr;
         controlo = REJ1;
     }
 	
