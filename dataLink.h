@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
+
 
 #define TRANSMITTER 1
 #define RECEIVER 0
@@ -51,18 +53,38 @@
 void time_out();
 
 
-void send_SET(int fd);
-void send_UA(int fd);
+
 //-------------------------------------------------Data Link Layer --------------------------
+//Envia o trama. Retorna nr de chars escritos. -1 em caso de erro
+int LLWRITE(int fd, char *buffer, int length);	
 
-int LLWRITE(int fd, char *buffer, int length);
 
-int LLOPEN(int fd, int transmitter); //envia trama SET e recebe trama UA.
+
+//Estabelece a comunicação.Retorna 1 ou -1(erro)
+int LLOPEN(int fd, int com_type); //Estabelece a comunicação
+
+//Retorna número de chars de Data lidos
 int LLREAD(int fd, char *buffer);
-int LLCOSE(int fd);
 
-int state_machine(int fd,char *trama, int flag, int transmitter, int trama_type, char controlo);
+//Funções de stuffing, destuffing e a função que verifica o BCC2
+unsigned char* stuffing(unsigned char* msg, int* length);
+unsigned char* destuffing(unsigned char* msg, int* length);
+unsigned char* verify_bcc2(unsigned char* control_message, int* length);
 
-//-------------------------------------------Application Link Layer --------------------------
+//Encerra a comunicação. Retorna 1 ou -1 (erro)
+int LLCLOSE(int fd, int com_type);
+
+
+FILE *openfile(char* filename, int com_type);
+void send_SET(int fd);
+void send_UA(int fd, int com_type);
+void send_DISC(int fd, int com_type);
+void send_REJ(int fd);
+void send_RR(int fd);
+
+long getFileSize(FILE* file);
+
+
+//-------------------------Main APP--------------------------
 
 int main(int argc, char** argv);
