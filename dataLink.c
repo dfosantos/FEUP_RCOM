@@ -189,8 +189,8 @@ int LLWRITE(int fd, char *buffer, int length) {
 
             case 2:
 
-                if(c == controlo) {//Expecting RR
-					Nr=!Nr;
+                if(c == RR0 || c == RR1) {//Expecting RR
+					
                     state = 3;
 				}
 				else if( c == REJ0 || c == REJ1){
@@ -251,7 +251,7 @@ int LLREAD(int fd, char *buffer) {
 		while(state != 5) {
 
 		        read(fd, &c, 1);
-						printf("C= %x\t state = %d\tcontrolo=%x\n",c,state,controlo);
+
 		       switch (state) {
 		        case 0://expecting flag
 		            if(c == FLAG) {
@@ -271,7 +271,7 @@ int LLREAD(int fd, char *buffer) {
 
 		        case 2://Expecting RR
 					
-		            if(c == controlo) {
+		            if(c == RR0 || c == RR1) {
 		                state = 3;
 		            } else if(c == FLAG) { //if FLAG received go back to previous state
 		                state = 1;
