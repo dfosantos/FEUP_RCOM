@@ -168,7 +168,7 @@ int LLWRITE(int fd, char *buffer, int length) {
 			
             read(fd, &c, 1);
 			
-
+	//printf("error not here\n");
             switch (state) {
             case 0://expecting flag
                 if(c == FLAG) {
@@ -346,10 +346,11 @@ int LLCLOSE(int fd, int com_type) {
                 }
                 if(c == address) {
                     state = 2;
+				}else if(c==FLAG){ //if FLAG received stay in same state
                     state = 1;
 
                 } else
-                    state=0;//else stay in same state
+                    state=0;//else go back to beggining
                 break;
 
             case 2:

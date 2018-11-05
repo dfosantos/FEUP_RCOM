@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
 		
 		if(LLWRITE(fd, stuffed, size)==-1)			//Send size
 			exit(1);				
-		printf("A enviar...");
+		printf("A enviar... ");
 
 		
 		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){
