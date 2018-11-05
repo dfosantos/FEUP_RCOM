@@ -177,9 +177,10 @@ int main(int argc, char** argv) {
 		while(received_file_size == 0){
 			length = LLREAD(fd, buffer);					
 			destuffed = verify_bcc2(buffer, &length);
-		
-			if(destuffed == NULL)
+
+			if(destuffed == NULL){
 					send_REJ(fd);
+			}
 			else{
 				send_RR(fd);
 				received_file_size = atoi(destuffed);
@@ -194,9 +195,11 @@ int main(int argc, char** argv) {
 		while( (length = LLREAD(fd, buffer) )> 0){
 			
 			destuffed = verify_bcc2(buffer, &length);
-				
-				if(destuffed == NULL)
+			  
+				if(destuffed == NULL){
 					send_REJ(fd);
+					printf("send rej\n");
+					}
 				else{
 					send_RR(fd);
 					fwrite(destuffed,1,length,file);

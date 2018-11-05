@@ -5,11 +5,10 @@ int TIMEOUT=0;
 int Nr=0;
 
 
+
 void time_out() {
-	
-printf("Timeout\n");
-    TIMEOUT++;
-	
+	printf("Timeout number: %d\n", TIMEOUT+1);
+	TIMEOUT++;
     flag=1;
 }
 
@@ -138,8 +137,7 @@ int LLWRITE(int fd, char *buffer, int length) {
         
         controlo = RR1;
     }
-	
-	//Nr=!Nr;
+
 
     //Prepara bytes iniciais
     trama[0] = FLAG;
@@ -157,21 +155,21 @@ int LLWRITE(int fd, char *buffer, int length) {
     //ESPERAR PELO ACK
     (void) signal(SIGALRM, time_out);
     TIMEOUT = 0;
-    while(TIMEOUT<10) {
+    while(TIMEOUT<3) {
 		
 		written = write(fd, trama, length + 5);
 		written = written-5;
-		printf("RR = %x\n",trama[2]);
+	
 		
-        alarm(1);
+        alarm(3);
         flag=0;
 		state=0;
         while(state != 5 && flag==0 ) {
 
 			
             read(fd, &c, 1);
-			printf("%x\t %d\n",c,state);
-
+			
+	//printf("error not here\n");
             switch (state) {
             case 0://expecting flag
                 if(c == FLAG) {
@@ -192,7 +190,7 @@ int LLWRITE(int fd, char *buffer, int length) {
             case 2:
 
                 if(c == controlo) {//Expecting RR
-					
+					Nr=!Nr;
                     state = 3;
 				}
 				else if( c == REJ0 || c == REJ1){
@@ -209,7 +207,6 @@ int LLWRITE(int fd, char *buffer, int length) {
             case 3://Expecting BCC
                 if (c == A_T^controlo) {
                     state = 4;
-
                 } else {
                     state = 0;//else go back to beggining
                 }
@@ -217,7 +214,6 @@ int LLWRITE(int fd, char *buffer, int length) {
             case 4://Expecting FLAG
                 if (c == FLAG) {
                     state = 5;
-					Nr=!Nr;
                     return written;
 
                 } else {
@@ -255,6 +251,7 @@ int LLREAD(int fd, char *buffer) {
 		while(state != 5) {
 
 		        read(fd, &c, 1);
+						printf("C= %x\t state = %d\tcontrolo=%x\n",c,state,controlo);
 		       switch (state) {
 		        case 0://expecting flag
 		            if(c == FLAG) {
@@ -495,11 +492,12 @@ void send_RR(int fd){
 void send_REJ(int fd){
 	char controlo;
 	if(Nr==0) {
-		Nr=!Nr;
+        
+				Nr=!Nr;
         controlo = REJ0;
     }
     else if(Nr==1) {
-   		Nr=!Nr;
+       Nr=!Nr;
         controlo = REJ1;
     }
 	
