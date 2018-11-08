@@ -2,6 +2,7 @@
 
 #define CHUNK_SIZE 50	//Número de caracteres do ficheiro a ser enviado de cada vez
 #include "dataLink.h"
+#include "utilities.h"
 
 int main(int argc, char** argv) {
     fflush(NULL);
@@ -193,7 +194,7 @@ int main(int argc, char** argv) {
 			  
 				if(destuffed == NULL){
 					send_REJ(fd);
-					printf("send rej\n");
+					
 					}
 				else{
 					send_RR(fd);

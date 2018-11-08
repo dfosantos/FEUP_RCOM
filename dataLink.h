@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include "utilities.h"
 
 #define TRANSMITTER 1
 #define RECEIVER 0
@@ -81,10 +82,3 @@ void send_UA(int fd, int com_type);
 void send_DISC(int fd, int com_type);
 void send_REJ(int fd);
 void send_RR(int fd);
-
-long getFileSize(FILE* file);
-
-
-//-----------------------------------------------Main APP-----------------------------------
-
-int main(int argc, char** argv);

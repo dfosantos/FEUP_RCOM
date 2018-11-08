@@ -1,6 +1,7 @@
 #include "dataLink.h"
-#define BCC_ERROR_PROBABILITY 0	//Probabilidade de erro na leitura de BCC
-#define BCC2_ERROR_PROBABILITY 0	//Probabilidade de erro na leitura de BCC2
+
+#define BCC_ERROR_PROBABILITY 1	//Probabilidade de erro na leitura de BCC
+#define BCC2_ERROR_PROBABILITY 1	//Probabilidade de erro na leitura de BCC2
 
 int flag=0;
 int TIMEOUT=0;
@@ -196,7 +197,7 @@ int LLWRITE(int fd, char *buffer, int length) {
                     state = 3;
 				}
 				else if( c == REJ0 || c == REJ1){
-					printf("REJ recebido\n");
+					
 					state = 0;
 					flag = 1;
 				
@@ -313,7 +314,7 @@ int LLREAD(int fd, char *buffer) {
 		        }
 		    }
    	
-
+delay(1);
 return length;
 
 
@@ -639,24 +640,4 @@ unsigned char* stuffing(unsigned char* msg, int* length){
 	*length=j;
 	
 	return str;
-}
-
-long getFileSize(FILE* file) {
-
-	long currentPosition = ftell(file);
-
-	
-	if (fseek(file, 0, SEEK_END) == -1) {
-		printf("ERROR: Could not get file size.\n");
-		return -1;
-	}
-
-	
-	long size = ftell(file);
-
-	
-	fseek(file, 0, currentPosition);
-
-	
-	return size;
 }
