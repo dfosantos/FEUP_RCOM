@@ -1,16 +1,7 @@
 /*Non-Canonical Input Processing*/
 
 #define CHUNK_SIZE 50	//Número de caracteres do ficheiro a ser enviado de cada vez
-
-
 #include "dataLink.h"
-
-
-
-extern int Nr; //Variável que controla RR0/RR1 
-
-
-
 
 int main(int argc, char** argv) {
     fflush(NULL);

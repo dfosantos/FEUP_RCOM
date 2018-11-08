@@ -1,5 +1,5 @@
 #include "dataLink.h"
-#define BCC_ERROR_PROBABILITY 50	//Probabilidade de erro na leitura de BCC
+#define BCC_ERROR_PROBABILITY 0	//Probabilidade de erro na leitura de BCC
 #define BCC2_ERROR_PROBABILITY 0	//Probabilidade de erro na leitura de BCC2
 
 int flag=0;
@@ -132,11 +132,11 @@ int LLWRITE(int fd, char *buffer, int length) {
     int i, written, state = 0;
 
     if(Nr==0) {
-        
+        Nr=1;
         controlo = RR0;
     }
     else if(Nr==1) {
-        
+        Nr=0;
         controlo = RR1;
     }
 
@@ -168,7 +168,7 @@ int LLWRITE(int fd, char *buffer, int length) {
 		state=0;
         while(state != 5 && flag==0 ) {
 
-			printf("flag == %d\n",flag);
+			
             read(fd, &c, 1);
 			
 	//printf("error not here\n");
@@ -274,7 +274,7 @@ int LLREAD(int fd, char *buffer) {
 
 		        case 2://Expecting RR
 					
-		            if(c == RR0 || c == RR1) {
+		            if(c == controlo) {
 		                state = 3;
 		            } else if(c == FLAG) { //if FLAG received go back to previous state
 		                state = 1;
@@ -486,6 +486,7 @@ void send_RR(int fd){
         controlo = RR0;
     }
     else if(Nr==1) {
+		
        	Nr = 0;
         controlo = RR1;
     }
@@ -506,11 +507,10 @@ void send_REJ(int fd){
 	char controlo;
 	if(Nr==0) {
         
-				Nr=!Nr;
         controlo = REJ0;
     }
     else if(Nr==1) {
-       Nr=!Nr;
+       
         controlo = REJ1;
     }
 	
