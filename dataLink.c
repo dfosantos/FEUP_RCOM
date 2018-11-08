@@ -1,4 +1,6 @@
 #include "dataLink.h"
+#define BCC_ERROR_PROBABILITY 100	//Probabilidade de erro na leitura de BCC
+#define BCC2_ERROR_PROBABILITY 0	//Probabilidade de erro na leitura de BCC2
 
 int flag=0;
 int TIMEOUT=0;
@@ -166,7 +168,7 @@ int LLWRITE(int fd, char *buffer, int length) {
 		state=0;
         while(state != 5 && flag==0 ) {
 
-			
+			printf("flag == %d\n",flag);
             read(fd, &c, 1);
 			
 	//printf("error not here\n");
@@ -205,7 +207,7 @@ int LLWRITE(int fd, char *buffer, int length) {
                 }
                 break;
             case 3://Expecting BCC
-                if (c == A_T^controlo) {
+                if (c == (A_T^controlo)) {
                     state = 4;
                 } else {
                     state = 0;//else go back to beggining
@@ -231,7 +233,8 @@ int LLWRITE(int fd, char *buffer, int length) {
 
 int LLREAD(int fd, char *buffer) {
 
-    int length=0;;
+    int length=0;
+	int random;
 	int state = 0;
 	unsigned char c;
 	char controlo;
@@ -280,9 +283,19 @@ int LLREAD(int fd, char *buffer) {
 		            }
 		            break;
 		        case 3://Expecting BCC
-		            if (c == A_T^controlo) {
+				
+					if(BCC_ERROR_PROBABILITY != 0){
+						random = rand();
+						random = (random % (100/BCC_ERROR_PROBABILITY)) + 1;
+						//printf("random = %d\n",random);
+						if(random == 1)
+							c = !c;
+					}
+					
+		            if (c == ((A_T^controlo))) {
 		                state = 4;
 		            } else {
+						printf("Erro no BCC\n");
 		                state = 0;//else go back to beggining
 		            }
 		            break;
@@ -481,7 +494,7 @@ void send_RR(int fd){
     trama[0]=FLAG;
     trama[1]=A_T;
     trama[2]=controlo;
-    trama[3]=A_T^controlo;
+    trama[3]=(A_T^controlo);
     trama[4]=FLAG;
 
     write(fd, trama, 5);
@@ -505,7 +518,7 @@ void send_REJ(int fd){
     trama[0]=FLAG;
     trama[1]=A_T;
     trama[2]=controlo;
-    trama[3]=A_T^controlo;
+    trama[3]=(A_T^controlo);
     trama[4]=FLAG;
 
     write(fd, trama, 5);
@@ -517,12 +530,19 @@ unsigned char* verify_bcc2(unsigned char* control_message, int* length){
 	unsigned char* destuffed_message = destuffing(control_message, length);
 
 	int i=0;
+	int random;
 	unsigned char control_bcc2 = 0x00;
 	for(; i<*length-1; i++){
 		control_bcc2 ^= destuffed_message[i];
 		
 	}
-	
+	if(BCC2_ERROR_PROBABILITY != 0){
+						random = rand();
+						random = (random % (100/BCC2_ERROR_PROBABILITY)) + 1;
+					
+						if(random == 1)
+							control_bcc2 = !control_bcc2;
+					}
 	if(control_bcc2 != destuffed_message[*length-1]){
 		*length = -1;
 		return NULL;

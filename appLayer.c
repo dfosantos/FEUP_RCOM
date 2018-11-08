@@ -1,8 +1,12 @@
 /*Non-Canonical Input Processing*/
+
+#define CHUNK_SIZE 50	//Número de caracteres do ficheiro a ser enviado de cada vez
+
+
 #include "dataLink.h"
 
 
-#define CHUNK_SIZE 50	//Número de caracteres do ficheiro a ser enviado de cada vez
+
 extern int Nr; //Variável que controla RR0/RR1 
 
 
@@ -146,7 +150,7 @@ int main(int argc, char** argv) {
 		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 		printf("\nEstatística:\n");
 		printf("Tempo de envio = %.2fs\n",secs);
-		printf("Débito binário = %.0f KB/s\n\n", file_size/secs);
+		printf("Débito binário = %.0f B/s\n\n", file_size/secs);
         
     }
 	
@@ -191,7 +195,7 @@ int main(int argc, char** argv) {
 	
 		printf("A receber...\n\n");
 		
-		
+		//File itself
 		while( (length = LLREAD(fd, buffer) )> 0){
 			
 			destuffed = verify_bcc2(buffer, &length);
@@ -214,7 +218,7 @@ int main(int argc, char** argv) {
 		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 		printf("\nEstatística:\n");
 		printf("Tempo de envio = %.2fs\n",secs);
-		printf("Débito binário = %.0f bps\n\n", received_file_size/secs);
+		printf("Débito binário = %.0f B/s\n\n", received_file_size/secs);
 		fclose(file);
 		
 	}
