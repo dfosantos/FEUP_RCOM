@@ -1,5 +1,5 @@
 #include "dataLink.h"
-#define BCC_ERROR_PROBABILITY 100	//Probabilidade de erro na leitura de BCC
+#define BCC_ERROR_PROBABILITY 50	//Probabilidade de erro na leitura de BCC
 #define BCC2_ERROR_PROBABILITY 0	//Probabilidade de erro na leitura de BCC2
 
 int flag=0;
@@ -27,7 +27,7 @@ int LLOPEN(int fd, int com_type) {
     }
 	else
 		printf("Esperando recetor... ");
-    while(TIMEOUT<3) {
+    while(TIMEOUT<=3) {
 
         if(com_type) {
 			
@@ -157,7 +157,7 @@ int LLWRITE(int fd, char *buffer, int length) {
     //ESPERAR PELO ACK
     (void) signal(SIGALRM, time_out);
     TIMEOUT = 0;
-    while(TIMEOUT<3) {
+    while(TIMEOUT<=3) {
 		
 		written = write(fd, trama, length + 5);
 		written = written-5;
@@ -334,7 +334,7 @@ int LLCLOSE(int fd, int com_type) {
 	
 	
 	
-	while(TIMEOUT<3 || !com_type) {
+	while(TIMEOUT<=3 || !com_type) {
 		
 		if(com_type) {
 			alarm(3);
