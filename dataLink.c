@@ -1,8 +1,5 @@
 #include "dataLink.h"
 
-#define BCC_ERROR_PROBABILITY 1	//Probabilidade de erro na leitura de BCC
-#define BCC2_ERROR_PROBABILITY 1	//Probabilidade de erro na leitura de BCC2
-
 int flag=0;
 int TIMEOUT=0;
 int Nr=0;
@@ -107,22 +104,7 @@ int LLOPEN(int fd, int com_type) {
     printf("TIMEOUT - Ligação Não Estabelecida\n");
     return -1;
 }
-FILE *openfile(char* filename, int com_type){
 
-	FILE *file;
-
-	if(com_type) file=fopen(filename, "rb");
-	
-	
-	else file=fopen(filename, "wb");
-	
-	if(file==NULL){
-		printf("Erro a abrir o ficheiro %s\n", filename);
-		return NULL;
-	}
-	
-	return file;
-}
 int LLWRITE(int fd, char *buffer, int length) {
 		
     fflush(NULL);
@@ -314,7 +296,7 @@ int LLREAD(int fd, char *buffer) {
 		        }
 		    }
    	
-delay(1);
+delay(TRANSMISSION_DELAY);
 return length;
 
 

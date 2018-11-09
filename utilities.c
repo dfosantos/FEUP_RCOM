@@ -1,5 +1,21 @@
 #include "utilities.h"
 
+FILE *openfile(char* filename, int com_type){
+
+	FILE *file;
+
+	if(com_type) file=fopen(filename, "rb");
+	
+	
+	else file=fopen(filename, "wb");
+	
+	if(file==NULL){
+		printf("Erro a abrir o ficheiro %s\n", filename);
+		return NULL;
+	}
+	
+	return file;
+}
 
 void delay(int milliseconds){
     long pause;

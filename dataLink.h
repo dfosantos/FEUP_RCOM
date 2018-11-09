@@ -11,6 +11,12 @@
 #include <sys/time.h>
 #include "utilities.h"
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#define BCC_ERROR_PROBABILITY 	0		//Probabilidade de erro na leitura de BCC			Valores entre 0-50 
+#define BCC2_ERROR_PROBABILITY 	0	//Probabilidade de erro na leitura de BCC2			Valores entre 0-50
+#define TRANSMISSION_DELAY 		0		//Tempo simulado de transmissão dos pacotes (ms)
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 #define TRANSMITTER 1
 #define RECEIVER 0
 
