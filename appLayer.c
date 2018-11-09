@@ -1,6 +1,6 @@
 /*Non-Canonical Input Processing*/
 
-#define CHUNK_SIZE 50	//Número de caracteres do ficheiro a ser enviado de cada vez
+#define CHUNK_SIZE 100	//Número de bytes do ficheiro a ser enviado de cada vez
 #include "dataLink.h"
 #include "utilities.h"
 
@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
 
 		
 		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){
-			
+				
 				stuffed = stuffing(buffer, &size);
 				if(LLWRITE(fd, stuffed, size)==-1)
 					exit(1);
@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
 	if(!com_type){
 		
 		
-		char buffer [CHUNK_SIZE];
+		char buffer [CHUNK_SIZE+(int)CHUNK_SIZE/2];
 		char *destuffed;
 		int length;
 		int received_file_size=0;
@@ -185,11 +185,20 @@ int main(int argc, char** argv) {
 		}
 		
 	
-		printf("A receber...\n\n");
+		printf("A receber pacote # ");
 		
 		//File itself
+		int macaco=0;
+
+
 		while( (length = LLREAD(fd, buffer) )> 0){
-			
+			if(macaco<10)
+				printf("\b%d",++macaco);
+			else if(macaco<100)
+				printf("\b\b%d",++macaco);
+			else if(macaco<1000)
+				printf("\b\b\b%d",++macaco);
+
 			destuffed = verify_bcc2(buffer, &length);
 			  
 				if(destuffed == NULL){
@@ -204,8 +213,8 @@ int main(int argc, char** argv) {
 
 			if(length<CHUNK_SIZE && length>0)break;
 		}	
-		
-		printf("%ld de %d bytes recebidos\nFicheiro recebido com sucesso!\n\n", getFileSize(file),received_file_size);
+		printf( "%c[1K", 27 );
+		printf("\n%ld de %d bytes recebidos\nFicheiro recebido com sucesso!\n\n", getFileSize(file),received_file_size);
 		gettimeofday(&stop, NULL);		
 		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 		printf("\nEstatística:\n");
