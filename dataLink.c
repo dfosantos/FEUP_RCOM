@@ -79,7 +79,7 @@ int LLOPEN(int fd, int com_type) {
                 }
                 break;
             case 3://Expecting BCC
-                if (c == address^address2) {
+                if (c == (address^address2)) {
                     state = 4;
                 } else {
                     state = 0;//else go back to beggining
@@ -328,7 +328,7 @@ int LLCLOSE(int fd, int com_type) {
         while(state != 5 && flag==0 ) {
 			
             read(fd, &c, 1);
-			
+		
             switch (state) {
             case 0://expecting flag
                 if(c == FLAG) {
@@ -339,7 +339,7 @@ int LLCLOSE(int fd, int com_type) {
                 if(com_type) {
                     address=A_R;
                 }
-                else{
+                else if(!com_type){
                     address=A_T;
                 }
                 if(c == address) {
@@ -365,17 +365,21 @@ int LLCLOSE(int fd, int com_type) {
                 }
                 break;
             case 3://Expecting BCC
-                if (c == address^DISC) {
+			
+                if (c == (address^DISC)) {
                     state = 4;
                 } 
-				else if(receiveUA == 1 && c == UA^address){
-					state == 4;
+				else if((receiveUA == 1) && (c == (UA^address))){
+					
+					state = 4;
 				}
 				else {
                     state = 0;//else go back to beggining
                 }
+				
                 break;
             case 4://Expecting FLAG
+			
                 if (c == FLAG) {
                     state = 5;
                     if (!com_type && receiveUA == 0) {
@@ -412,15 +416,18 @@ int LLCLOSE(int fd, int com_type) {
 void send_UA(int fd, int com_type) {
 
     char trama_UA[5];
+	char address;
     trama_UA[0]=FLAG;
 	if(com_type){
-		trama_UA[1]=A_T;	
+		address = A_T;
+		trama_UA[1]=address;	
 	}
 	else{
-		trama_UA[1]=A_R;
+		address = A_R;
+		trama_UA[1] = address;
 	}
     trama_UA[2]=UA;
-    trama_UA[3]=A_R^UA;
+    trama_UA[3]=address^UA;
     trama_UA[4]=FLAG;
 
     write(fd, trama_UA, 5);
@@ -445,14 +452,18 @@ void send_SET(int fd) {
 void send_DISC(int fd, int com_type) {
 
     char trama[5];
+	char address;
     trama[0]=FLAG;
-	if(com_type)
-		trama[1]=A_T;
+	if(com_type){
+		address = A_T;
+		trama[1] = address;
+	}
 	else{
-		trama[1] = A_R;
+		address = A_R;
+		trama[1] = address;
 	}
     trama[2]=DISC;
-    trama[3]=A_T^DISC;
+    trama[3]=address^DISC;
     trama[4]=FLAG;
 
     write(fd, trama, 5);
