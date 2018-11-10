@@ -555,11 +555,12 @@ char* verify_bcc2(char* control_message, int* length){
 
 char* destuffing(char* msg, int* length){
 	
-	int length_decrement=0;
+//	int length_decrement=0;
 	char* str = (char*) malloc(*length);
 	int i;
 	int new_length = 0;
 
+	
 	
 	for(i=0; i<*length; i++){
 		new_length++;
@@ -568,12 +569,12 @@ char* destuffing(char* msg, int* length){
 			if(msg[i+1] == 0x5e){
 				str[new_length-1] = FLAG;
 				i++;
-				length_decrement++;
+				//length_decrement++;
 			}
 	 		else if(msg[i+1] == 0x5d){
 				str[new_length -1] = 0x7d;
 				i++;
-				length_decrement++;
+				//length_decrement++;
 			}
 		}
 		else{
@@ -586,19 +587,21 @@ char* destuffing(char* msg, int* length){
 	return str;
 }
 
-char* stuffing(char* msg, int* length){
+char* stuffing(char* payload, int* length){
 	
 	char* str;
 	char* msg_aux;
 	int i;
 	int j;
 	
+	
 	str = (char *) malloc(*length);
 	msg_aux = (char *) malloc(*length);
 	char BCC2=0x00;
+	
 	for(i=0,j=0; i < *length; i++, j++){
-		BCC2^=msg[i];
-		msg_aux[i] = msg[i];
+		BCC2^=payload[i];
+		msg_aux[i] = payload[i];
 	}
 
 	
@@ -638,7 +641,7 @@ char* control_frame(char* filename, FILE *file, int start, int* frame_size){
 	int file_size = getFileSize(file);					//Get file size
 	printf("\nFile size = %d bytes\n\n",file_size);	
 	int i = 0;
-	char file_size_in_string[20];
+	char file_size_in_string[30];
 	sprintf(file_size_in_string, "%d", file_size);
 	
 	*frame_size = 5 + file_name_size + strlen(file_size_in_string);
@@ -667,18 +670,12 @@ char* control_frame(char* filename, FILE *file, int start, int* frame_size){
 	for( j=i ; i<file_name_size+j ; i++ ){
 		
 		control_frame[i] = filename[i-j];
-	}
-	
-	
-	for(int k = 0 ; k < i; k++){
-		printf("control_frame[%d]=%X\n",k,control_frame[k]);
-	}
-	
+	}	
 	
 	return control_frame;
 }
 
-char* decode_control(char* control, int* file_size){
+char* get_info(char* control, int* file_size){
 	
 	if(control[0]!=0x01)return NULL;
 	int pos = 4+control[2];
@@ -686,13 +683,11 @@ char* decode_control(char* control, int* file_size){
 	
 	char *buffer = malloc(100);
 	
-	printf("filename_size = %d\n",filename_size);
 	char* size = malloc(control[2]);
 	int i;
 	
 	for(i=0 ; i < filename_size ; i++ ){
 		buffer[i] = control[pos+1+i];
-		printf("buffer[%d] = %c\t control[%d]=%c\n",i, buffer[i], pos+1+i ,control[pos+1+i]);
 	}
 	
 	
@@ -703,6 +698,45 @@ char* decode_control(char* control, int* file_size){
 	*file_size = atoi(size);
 	return buffer;
 }
+
+char* header(char* buffer, int* length, short sequence_number){
+	
+	char* str = malloc((*length)+4);
+	
+	str[0] = 0x00; 
+	str[1] = (char)sequence_number;
+	str[2] = (char)(*length)/256;
+	str[3] = (char)(*length)%256;
+	
+	int i;
+	for(i = 0 ; i < *length ; i++ ){
+		str[i+4] = buffer[i];
+	}
+
+	*length = *length + 4;
+	return str;
+	
+}
+
+char* remove_header(char* buffer, int* length){
+	
+	char* str = malloc(100);
+	int i;
+	
+
+	
+	for(i = 0 ; i < *length - 4 ; i++)
+		str[i] = buffer[i+4];
+	
+	*length = *length-4;
+	return str;
+	
+	
+}
+
+
+
+
 
 
 

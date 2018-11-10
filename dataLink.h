@@ -62,27 +62,23 @@ void time_out();
 
 
 //-------------------------------------------------Data Link Layer --------------------------
-//Envia o trama. Retorna nr de chars escritos. -1 em caso de erro
-int LLWRITE(int fd, char *buffer, int length);	
 
+int LLWRITE(int fd, char *buffer, int length);									//Envia o trama. Retorna nr de chars escritos. -1 em caso de erro
 
+int LLOPEN(int fd, int com_type); 												//Estabelece a comunicação. Retorna 1 ou -1(erro)
 
-//Estabelece a comunicação.Retorna 1 ou -1(erro)
-int LLOPEN(int fd, int com_type); //Estabelece a comunicação
+int LLREAD(int fd, char *buffer);												//Retorna número de chars de Data lidos
 
-//Retorna número de chars de Data lidos
-int LLREAD(int fd, char *buffer);
-
-//Encerra a comunicação. Retorna 1 ou -1 (erro)
-int LLCLOSE(int fd, int com_type);
+int LLCLOSE(int fd, int com_type);												//Encerra a comunicação. Retorna 1 ou -1 (erro)
 
 //Funções de stuffing, destuffing e a função que verifica o BCC2
-char* stuffing(char* msg, int* length);									//Faz stuffing e adiciona BCC2
-char* destuffing(char* msg, int* length);								//Faz destuffing e retira BCC2
-char* verify_bcc2(char* control_message, int* length);					//Verifica BCC2
-char* control_frame(char* filename, FILE *file, int start, int* frame_size);
-char* decode_control(char* control, int* file_size);
-
+char* stuffing(char* payload, int* length);										//Faz stuffing e adiciona BCC2
+char* destuffing(char* msg, int* length);										//Faz destuffing e retira BCC2
+char* verify_bcc2(char* control_message, int* length);							//Verifica BCC2
+char* control_frame(char* filename, FILE *file, int start, int* frame_size);	//Cria pacite de controlo START/END
+char* get_info(char* control, int* file_size);									//Extrai nome de ficheiro e respetivo tamanho em bytes
+char* header(char* buffer, int* length, short sequence_number);					//Adiciona byte de controlo, número de sequência e tamanho do campo de dados
+char* remove_header(char* buffer, int* length);									//Remove Header
 
 FILE *openfile(char* filename, int com_type);
 void send_SET(int fd);

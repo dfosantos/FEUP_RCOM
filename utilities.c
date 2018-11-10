@@ -46,3 +46,42 @@ long getFileSize(FILE* file) {
 	
 	return size;
 }
+
+int check_arguments(int argc, char** argv){
+	
+	int com_type;
+	if ( (argc < 2) ||
+            (
+			(strcmp("/dev/ttyS0", argv[1])!=0) && (strcmp("/dev/ttyS1", argv[1])!=0) )) {
+        printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
+        exit(1);
+    }
+	
+	if((argc < 3) ||
+			 ( (strcmp("sender", argv[2])!=0) && (strcmp("receiver", argv[2])!=0))){
+				printf("Specify if 'sender' or 'receiver' and file name\n");
+				exit(1);
+			}
+	if(argc < 4 && strcmp(argv[2],"sender") == 0){
+		printf("Specify file name\n");
+		exit(1);
+	}
+	else{
+		if(strcmp("sender", argv[2])==0){
+			com_type = 1;
+		}
+		else if(strcmp("receiver", argv[2])==0){
+			com_type = 0;
+		}
+		else{
+			printf("Specify if 'sender' or 'receiver'\n");
+		}
+	}
+	
+	return com_type;
+}
+
+
+
+
+
