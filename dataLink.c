@@ -630,3 +630,88 @@ char* stuffing(char* msg, int* length){
 	
 	return str;
 }
+
+char* control_frame(char* filename, FILE *file, int start, int* frame_size){
+	
+	
+	int file_name_size	= strlen(filename);
+	int file_size = getFileSize(file);					//Get file size
+	printf("\nFile size = %d bytes\n\n",file_size);	
+	int i = 0;
+	char file_size_in_string[20];
+	sprintf(file_size_in_string, "%d", file_size);
+	
+	*frame_size = 5 + file_name_size + strlen(file_size_in_string);
+	char *control_frame = malloc(*frame_size);
+	
+	if(start)
+		control_frame[i++] = 0x01;
+	else
+		control_frame[i++] = 0x02;
+	
+	
+	control_frame[i++] = 0x00;
+	control_frame[i++] = (char)strlen(file_size_in_string);
+
+	
+	for(; i < strlen(file_size_in_string)+3 ; i++){
+		
+		control_frame[i] = file_size_in_string[i-3];		
+	}
+	
+	
+	control_frame[i++] = 0x01;
+	control_frame[i++] = (char) file_name_size;
+	
+	int j;
+	for( j=i ; i<file_name_size+j ; i++ ){
+		
+		control_frame[i] = filename[i-j];
+	}
+	
+	
+	for(int k = 0 ; k < i; k++){
+		printf("control_frame[%d]=%X\n",k,control_frame[k]);
+	}
+	
+	
+	return control_frame;
+}
+
+char* decode_control(char* control, int* file_size){
+	
+	if(control[0]!=0x01)return NULL;
+	int pos = 4+control[2];
+	int filename_size = control[4+control[2]];
+	
+	char *buffer = malloc(100);
+	
+	printf("filename_size = %d\n",filename_size);
+	char* size = malloc(control[2]);
+	int i;
+	
+	for(i=0 ; i < filename_size ; i++ ){
+		buffer[i] = control[pos+1+i];
+		printf("buffer[%d] = %c\t control[%d]=%c\n",i, buffer[i], pos+1+i ,control[pos+1+i]);
+	}
+	
+	
+	for(i=0 ; i < control[2] ; i++ )
+		size[i] = control[i+3];
+	
+	
+	*file_size = atoi(size);
+	return buffer;
+}
+
+
+
+
+
+
+
+
+
+
+
+

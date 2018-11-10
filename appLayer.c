@@ -105,30 +105,22 @@ int main(int argc, char** argv) {
         fflush(NULL);
         
 		
-		int file_name_size = strlen(argv[3]);
+		
 		char buffer[CHUNK_SIZE];
 		char *stuffed;
 		int size;
 		
-		int file_size=getFileSize(file);					//Get file size
-		printf("\nFile size = %d bytes\n\n",file_size);			
-		
-		stuffed = stuffing(argv[3], &file_name_size);		//Stuff name
-		if(LLWRITE(fd, stuffed, file_name_size)==-1)		//Send name
-			exit(1);				
-		
-		
 	
 		
 		
-	
-		sprintf(buffer, "%d", file_size);
-		size = (int)strlen(buffer);
-
-		stuffed = stuffing(buffer, &size);			//Stuff size
+		char *control = control_frame( argv[3] , file , 1 , &size);				//START frame
 		
-		if(LLWRITE(fd, stuffed, size)==-1)			//Send size
-			exit(1);				
+		stuffed = stuffing (control, &size);
+	
+				
+		if(LLWRITE(fd, stuffed, size) == -1 )		//Send file info
+			exit(1);		
+		
 		printf("A enviar... ");
 
 		
@@ -143,6 +135,7 @@ int main(int argc, char** argv) {
 		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 		printf("\nEstatística:\n");
 		printf("Tempo de envio = %.2fs\n",secs);
+		int file_size = getFileSize(file);
 		printf("Débito binário = %.0f B/s\n\n", file_size/secs);
         
     }
@@ -154,34 +147,25 @@ int main(int argc, char** argv) {
 		char *destuffed;
 		int length;
 		int received_file_size=0;
-		//Read file name
+		char *filename;
+		
+		//Leitura da informação do ficheiro
 		while(1){
 			length = LLREAD(fd, buffer);	
 		
-			destuffed = verify_bcc2(buffer, &length);		
+			destuffed = verify_bcc2(buffer, &length);	
 			if(destuffed == NULL)
 					send_REJ(fd);
 			else{
-				send_RR(fd);
-				printf("\nFile Name: %s\n",destuffed);
-				file=openfile(destuffed, com_type);	
-				break;
-			}
-			
-		}
-		
-		//Read file size
-		while(received_file_size == 0){
-			length = LLREAD(fd, buffer);					
-			destuffed = verify_bcc2(buffer, &length);
-
-			if(destuffed == NULL){
-					send_REJ(fd);
-			}
-			else{
-				send_RR(fd);
-				received_file_size = atoi(destuffed);
-				printf("Size: %d\n\n",received_file_size);				
+				filename = decode_control(destuffed, &received_file_size);
+				if(filename!=NULL){
+					printf("File Name: %s\nFile Size: %d\n", filename, received_file_size);
+					send_RR(fd);
+					file=openfile(filename, com_type);	
+					break;
+				}
+				else
+					send_REJ();
 			}
 		}
 		
@@ -220,6 +204,7 @@ int main(int argc, char** argv) {
 		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 		printf("\nEstatística:\n");
 		printf("Tempo de envio = %.2fs\n",secs);
+		int file_size = getFileSize(file);
 		printf("Débito binário = %.0f B/s\n\n", received_file_size/secs);
 		fclose(file);
 		

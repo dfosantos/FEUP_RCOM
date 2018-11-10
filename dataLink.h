@@ -77,11 +77,11 @@ int LLREAD(int fd, char *buffer);
 int LLCLOSE(int fd, int com_type);
 
 //Funções de stuffing, destuffing e a função que verifica o BCC2
-char* stuffing(char* msg, int* length);
-char* destuffing(char* msg, int* length);
-char* verify_bcc2(char* control_message, int* length);
-
-
+char* stuffing(char* msg, int* length);									//Faz stuffing e adiciona BCC2
+char* destuffing(char* msg, int* length);								//Faz destuffing e retira BCC2
+char* verify_bcc2(char* control_message, int* length);					//Verifica BCC2
+char* control_frame(char* filename, FILE *file, int start, int* frame_size);
+char* decode_control(char* control, int* file_size);
 
 
 FILE *openfile(char* filename, int com_type);
