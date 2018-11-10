@@ -110,14 +110,15 @@ int main(int argc, char** argv) {
 		char *stuffed;
 		int size;
 		
-				
+		int file_size=getFileSize(file);					//Get file size
+		printf("\nFile size = %d bytes\n\n",file_size);			
+		
 		stuffed = stuffing(argv[3], &file_name_size);		//Stuff name
 		if(LLWRITE(fd, stuffed, file_name_size)==-1)		//Send name
 			exit(1);				
 		
 		
-		int file_size=getFileSize(file);					//Get file size
-		printf("\nFile size = %d bytes\n\n",file_size);		
+	
 		
 		
 	

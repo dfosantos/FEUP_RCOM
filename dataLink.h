@@ -14,7 +14,7 @@
 //--------------------------------------------------------------------------------------------------------------------------------------
 #define BCC_ERROR_PROBABILITY 	0		//Probabilidade de erro na leitura de BCC ----------Valores entre 0-50	------------------------
 #define BCC2_ERROR_PROBABILITY 	0		//Probabilidade de erro na leitura de BCC2	--------Valores entre 0-50 -------------------------
-#define TRANSMISSION_DELAY 		20		//Tempo simulado de propagação dos pacotes (ms)	------------------------------------------------
+#define TRANSMISSION_DELAY 		0		//Tempo simulado de propagação dos pacotes (ms)	------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------
 
 #define TRANSMITTER 1
@@ -73,13 +73,15 @@ int LLOPEN(int fd, int com_type); //Estabelece a comunicação
 //Retorna número de chars de Data lidos
 int LLREAD(int fd, char *buffer);
 
+//Encerra a comunicação. Retorna 1 ou -1 (erro)
+int LLCLOSE(int fd, int com_type);
+
 //Funções de stuffing, destuffing e a função que verifica o BCC2
 char* stuffing(char* msg, int* length);
 char* destuffing(char* msg, int* length);
 char* verify_bcc2(char* control_message, int* length);
 
-//Encerra a comunicação. Retorna 1 ou -1 (erro)
-int LLCLOSE(int fd, int com_type);
+
 
 
 FILE *openfile(char* filename, int com_type);

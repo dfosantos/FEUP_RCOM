@@ -560,6 +560,7 @@ char* destuffing(char* msg, int* length){
 	int i;
 	int new_length = 0;
 
+	
 	for(i=0; i<*length; i++){
 		new_length++;
 	
