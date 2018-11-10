@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
 					break;
 				}
 				else
-					send_REJ();
+					send_REJ(fd);
 			}
 		}
 		
