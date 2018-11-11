@@ -5,6 +5,7 @@
 #include "utilities.h"
 
 int main(int argc, char** argv) {
+	
     fflush(NULL);
     int fd = open(argv[1], O_RDWR | O_NOCTTY );
 
@@ -53,6 +54,7 @@ int main(int argc, char** argv) {
 ---------------------------------------------------------------
 ---------------------------------------------------------------
 */
+	srand(time(NULL));
 
 	
 	//Tipo de comunicação: Sender (1) or Receiver (0)
