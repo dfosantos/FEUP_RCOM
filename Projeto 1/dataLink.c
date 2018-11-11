@@ -1,14 +1,13 @@
 #include "dataLink.h"
 
 int flag=0;
-int TIMEOUT=0;
+int timeout=0;
 int Nr=0;
 
 
 
 void time_out() {
-	printf("Timeout number: %d\n", TIMEOUT+1);
-	TIMEOUT++;
+	timeout++;
     flag=1;
 }
 
@@ -25,7 +24,7 @@ int LLOPEN(int fd, int com_type) {
     }
 	else
 		printf("Esperando recetor...\n");
-    while(TIMEOUT<=3) {
+    while(timeout<=TIMEOUTS) {
 
         if(com_type) {
 			
@@ -101,14 +100,14 @@ int LLOPEN(int fd, int com_type) {
         }
     }
 
-    printf("TIMEOUT - Ligação Não Estabelecida\n");
+    printf("timeout - Ligação Não Estabelecida\n");
     return -1;
 }
 
 int LLWRITE(int fd, char *buffer, int length) {
 		
     fflush(NULL);
-    TIMEOUT = 0;
+    timeout = 0;
     char *trama = malloc((length+5)*sizeof(char));
     char controlo;
     char c;
@@ -139,8 +138,8 @@ int LLWRITE(int fd, char *buffer, int length) {
     
     //ESPERAR PELO ACK
     (void) signal(SIGALRM, time_out);
-    TIMEOUT = 0;
-    while(TIMEOUT<=3) {
+    timeout = 0;
+    while(timeout<=TIMEOUTS) {
 		
 		written = write(fd, trama, length + 5);
 		written = written-5;
@@ -277,10 +276,9 @@ int LLREAD(int fd, char *buffer) {
 					
 		            if (c == ((A_T^controlo))) {
 		                state = 4;
-		            } else {
-						printf("Erro no BCC\n");
+		            } else 
 		                state = 0;//else go back to beggining
-		            }
+		            
 		            break;
 		        case 4:									//FLAG
 					if( c == FLAG){
@@ -317,7 +315,7 @@ int LLCLOSE(int fd, int com_type) {
 	
 	
 	
-	while(TIMEOUT<=3 || !com_type) {
+	while(timeout<=TIMEOUTS || !com_type) {
 		
 		if(com_type) {
 			alarm(3);
