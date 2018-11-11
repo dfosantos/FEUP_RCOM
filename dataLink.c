@@ -639,7 +639,8 @@ char* control_frame(char* filename, FILE *file, int start, int* frame_size){
 	
 	int file_name_size	= strlen(filename);
 	int file_size = getFileSize(file);					//Get file size
-	printf("\nFile size = %d bytes\n\n",file_size);	
+	if(start)
+		printf("\nFile size = %d bytes\n\n",file_size);	
 	int i = 0;
 	char file_size_in_string[30];
 	sprintf(file_size_in_string, "%d", file_size);
@@ -648,9 +649,9 @@ char* control_frame(char* filename, FILE *file, int start, int* frame_size){
 	char *control_frame = malloc(*frame_size);
 	
 	if(start)
-		control_frame[i++] = 0x01;
+		control_frame[i++] = START;
 	else
-		control_frame[i++] = 0x02;
+		control_frame[i++] = END;
 	
 	
 	control_frame[i++] = 0x00;
@@ -720,7 +721,7 @@ char* header(char* buffer, int* length, short sequence_number){
 
 char* remove_header(char* buffer, int* length){
 	
-	char* str = malloc(100);
+	char* str = malloc(2 * (*length));
 	int i;
 	
 

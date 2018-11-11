@@ -61,8 +61,7 @@ int main(int argc, char** argv) {
 	double secs = 0;
 	
 
-	if(LLOPEN(fd , com_type)==-1) exit(1);		//Estabelecimento da comunicação
-	gettimeofday(&start, NULL);
+
 
 	FILE *file;
     
@@ -70,7 +69,8 @@ int main(int argc, char** argv) {
 			
 
 		if((file=openfile(argv[3], com_type))==NULL)exit(1);
-		
+		if(LLOPEN(fd , com_type)==-1) exit(1);		//Estabelecimento da comunicação
+		gettimeofday(&start, NULL);
         fflush(NULL);
         
 		
@@ -80,41 +80,51 @@ int main(int argc, char** argv) {
 		char *stuffed;
 		int size;
 		short sequence_number = 0;
-		char *control = control_frame( argv[3] , file , 1 , &size);				//START frame
-		
-		stuffed = stuffing (control, &size);
+		char *control = control_frame( argv[3] , file , 1 , &size);					//START frame
+
+		stuffed = stuffing (control, &size);									
 	
 
 		if(LLWRITE(fd, stuffed, size) == -1 )		//Send file info
 			exit(1);		
 		
-		printf("A enviar... ");
+		printf("A enviar...\n");
 
+		int enviado=0;
+		int file_size = getFileSize(file);
 		
 		while ( (size = fread(buffer, sizeof(char), CHUNK_SIZE, file)) > 0){		//Lê fragmento do ficheiro
+				enviado = enviado + size;
+				loading(enviado,file_size);											//Barra de progresso
+				
 				
 				payload = header(buffer, &size, sequence_number++);					//Adiciona campo de controlo, número de sequência, tamanho da payload
-				printf("string = "); 
-				for(int ola = 0; ola<size;ola++)
-					printf("payload[%d] = %X\n",ola,payload[ola]);
-				printf("\n");
 				stuffed = stuffing(payload, &size);									//Transparência e adiciona BCC2
 				
 				if(LLWRITE(fd, stuffed, size)==-1)									//Envia o trama
 					exit(1);	
+				
 		}		
+		
+		control = control_frame( argv[3] , file , 0 , &size);						//END frame
+		stuffed = stuffing (control, &size);
+		
+		if(LLWRITE(fd, stuffed, size) == -1 )		//Send END frame
+			exit(1);	
+			
 		gettimeofday(&stop, NULL);	
-		printf("Ficheiro enviado!\n");
+		printf("\n\nFicheiro enviado!\n");
 		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 		printf("\nEstatística:\n");
 		printf("Tempo de envio = %.2fs\n",secs);
-		int file_size = getFileSize(file);
 		printf("Débito = %.0f B/s\n\n", file_size/secs);
         
     }
 	
 	if(!com_type){
 		
+		if(LLOPEN(fd , com_type)==-1) exit(1);		//Estabelecimento da comunicação
+		gettimeofday(&start, NULL);
 		
 		char stuffed [CHUNK_SIZE+(int)CHUNK_SIZE/2];
 		char *payload;
@@ -143,46 +153,38 @@ int main(int argc, char** argv) {
 			}
 		}
 		
-	
-		printf("A receber pacote # ");
-		
-		//File itself
-		int macaco=0;
-
-
+		//Receção do ficheiro
+		printf("A receber...\n");
 		while( (length = LLREAD(fd, stuffed) )> 0){
-		/*	if(macaco<10)
-				printf("\b%d",++macaco);
-			else if(macaco<100)
-				printf("\b\b%d",++macaco);
-			else if(macaco<1000)
-				printf("\b\b\b%d",++macaco);
-*/
 			
+			loading((int)getFileSize(file),received_file_size);
+			if(stuffed[0]==END){
 				
-			payload = verify_bcc2(stuffed, &length);								//Faz destuff e verifica o BCC2
-		
-			
-			if(payload == NULL)
+				buffer = verify_bcc2(stuffed, &length);	
+				if(buffer == NULL)
 					send_REJ(fd);
+				else{
+					send_RR(fd);
+					break;
+				}
+			}	
 			else{
-			
-				buffer = remove_header(payload, &length);							//Remove Header 
-				printf("string = "); 
-				for(int ola = 0; ola<length;ola++)
-					printf("buffer[%d] = %c\n",ola,buffer[ola]);
-				printf("\n");
-				send_RR(fd);
+				payload = verify_bcc2(stuffed, &length);								//Faz destuff e verifica o BCC2
 				
-				fwrite(buffer,1,length,file);
+				if(payload == NULL)
+						send_REJ(fd);
+				else{
+					buffer = remove_header(payload, &length);							//Remove Header 
+					send_RR(fd);
+					fwrite(buffer,1,length,file);
+				}
+				
 			}
-				
-
-			if(length<CHUNK_SIZE && length>0)break;
+			
 		}	
-		printf( "%c[1K", 27 );
+		
 		gettimeofday(&stop, NULL);	
-		printf("\n%ld de %d bytes recebidos\nFicheiro recebido com sucesso!\n\n", getFileSize(file),received_file_size);
+		printf("\n\n%ld de %d bytes recebidos\nFicheiro recebido com sucesso!\n\n", getFileSize(file),received_file_size);
 		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 		printf("\nEstatística:\n");
 		printf("Tempo de envio = %.2fs\n",secs);

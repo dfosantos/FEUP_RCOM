@@ -81,6 +81,24 @@ int check_arguments(int argc, char** argv){
 	return com_type;
 }
 
+void loading(int current_size, int total_size){
+	
+	static short progress=0;
+	int i;
+	if(progress == 0){
+		for(i=0 ; i < 100 ; i++)	printf("\u2591");
+		for(i=0 ; i < 100 ; i++)	printf("\b");
+	}
+	
+	
+	for(i = 0 ; i < ((int)((float)current_size/(float)total_size*100)) - progress ; i++)
+		printf("\u2593");
+	
+	progress=(int)((float)current_size/(float)total_size*100);
+}
+
+
+
 
 
 
