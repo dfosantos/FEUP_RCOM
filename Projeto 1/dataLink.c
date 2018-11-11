@@ -24,7 +24,7 @@ int LLOPEN(int fd, int com_type) {
         printf("Esperando emissor...\n");
     }
 	else
-		printf("Esperando recetor... ");
+		printf("Esperando recetor...\n");
     while(TIMEOUT<=3) {
 
         if(com_type) {
