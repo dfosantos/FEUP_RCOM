@@ -181,8 +181,12 @@ int main(int argc, char** argv) {
 			
 		}	
 		
-		gettimeofday(&stop, NULL);	
-		printf("\n\n%ld de %d bytes recebidos\nFicheiro recebido com sucesso!\n\n", getFileSize(file),received_file_size);
+		gettimeofday(&stop, NULL);
+		
+		if(getFileSize(file) == received_file_size)
+			printf("\n\n%ld de %d bytes recebidos\nFicheiro recebido com sucesso!\n\n", getFileSize(file),received_file_size);
+		else
+			printf("\n\n%ld de %d bytes recebidos\nTamanho recebido diferente de tamanho original!\n\n", getFileSize(file),received_file_size);
 		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 		printf("\nEstatística:\n");
 		printf("Tempo de envio = %.2fs\n",secs);
