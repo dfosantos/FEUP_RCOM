@@ -86,15 +86,15 @@ void loading(int current_size, int total_size){
 	static short progress=0;
 	int i;
 	if(progress == 0){
-		for(i=0 ; i < 100 ; i++)	printf("\x1B[33m\u2591\x1B[0m");						//IMPRIME BACKGROUND
-		for(i=0 ; i < 100 ; i++)	printf("\b");											//VOLTA AO INICIO DA LINHA
+		for(i=0 ; i < 50 ; i++)	printf("\x1B[33m\u2591\x1B[0m");						//IMPRIME BACKGROUND
+		for(i=0 ; i < 50 ; i++)	printf("\b");											//VOLTA AO INICIO DA LINHA
 	}
 	
 	
-	for(i = 0 ; i < ((int)((float)current_size/(float)total_size*100)) - progress ; i++)
+	for(i = 0 ; i < ((int)((float)current_size/(float)total_size*50)) - progress ; i++)
 		printf("\x1B[32m\u2593\x1B[0m");													//IMPRIME BARRA
 	
-	progress=(int)((float)current_size/(float)total_size*100);
+	progress=(int)((float)current_size/(float)total_size*50);
 }
 
 

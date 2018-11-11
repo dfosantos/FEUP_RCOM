@@ -75,7 +75,7 @@ int LLCLOSE(int fd, int com_type);												//Encerra a comunicação. Retorna
 char* stuffing(char* payload, int* length);										//Faz stuffing e adiciona BCC2
 char* destuffing(char* msg, int* length);										//Faz destuffing e retira BCC2
 char* verify_bcc2(char* control_message, int* length);							//Verifica BCC2
-char* control_frame(char* filename, FILE *file, int start, int* frame_size);	//Cria pacite de controlo START/END
+char* control_frame(char* filename, FILE *file, int start, int* frame_size);	//Cria pacote de controlo START/END
 char* get_info(char* control, int* file_size);									//Extrai nome de ficheiro e respetivo tamanho em bytes
 char* header(char* buffer, int* length, short sequence_number);					//Adiciona byte de controlo, número de sequência e tamanho do campo de dados
 char* remove_header(char* buffer, int* length);									//Remove Header
