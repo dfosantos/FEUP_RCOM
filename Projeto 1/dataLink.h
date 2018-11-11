@@ -12,8 +12,8 @@
 #include "utilities.h"
 
 //--------------------------------------------------------------------------------------------------------------------------------------
-#define BCC_ERROR_PROBABILITY 	5		//Probabilidade de erro na leitura de BCC ----------Valores entre 0-50	------------------------
-#define BCC2_ERROR_PROBABILITY 	20		//Probabilidade de erro na leitura de BCC2	--------Valores entre 0-50 -------------------------
+#define BCC_ERROR_PROBABILITY 	0		//Probabilidade de erro na leitura de BCC ----------Valores entre 0-50	------------------------
+#define BCC2_ERROR_PROBABILITY 	0		//Probabilidade de erro na leitura de BCC2	--------Valores entre 0-50 -------------------------
 #define TRANSMISSION_DELAY 		5		//Tempo simulado de propagação dos pacotes (ms)	------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------
 

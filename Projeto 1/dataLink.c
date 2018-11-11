@@ -17,7 +17,7 @@ int LLOPEN(int fd, int com_type) {
     if(com_type)
     (void) signal(SIGALRM, time_out);
     char address, address2;
-    char c;//last char received
+    char c;								
     int state = 0;
 
     if(!com_type) {
@@ -42,12 +42,12 @@ int LLOPEN(int fd, int com_type) {
 
             switch (state) {
                 
-            case 0://expecting flag
+            case 0:									//FLAG
                 if(c == FLAG) {
                     state = 1;
                 }//else stay in same state
                 break;
-            case 1://expecting A
+            case 1:									//A_R/A_T
                 if(com_type) {
                     address=A_R;
                 }
@@ -56,14 +56,14 @@ int LLOPEN(int fd, int com_type) {
                 }
                 if(c == address) {
                     state = 2;
-                } else if(c == FLAG) {  //if FLAG received stay in the same state
+                } else if(c == FLAG) {  
                     state = 1;
 
                 } else
-                    state=0;//else stay in same state
+                    state=0;
                 break;
 
-            case 2:
+            case 2:									//UA/SET
                 if(com_type) {
                     address2=UA;
                 }
@@ -72,20 +72,20 @@ int LLOPEN(int fd, int com_type) {
                 }
                 if(c == address2) {
                     state = 3;
-                } else if(c == FLAG) {  //if FLAG received go back to previous state
+                } else if(c == FLAG) { 
                     state = 1;
-                } else {//else go back to beggining
+                } else {
                     state = 0;
                 }
                 break;
-            case 3://Expecting BCC
+            case 3:									//BCC
                 if (c == (address^address2)) {
                     state = 4;
                 } else {
-                    state = 0;//else go back to beggining
+                    state = 0;
                 }
                 break;
-            case 4://Expecting FLAG
+            case 4:									//FLAG
                 if (c == FLAG) {
                     state = 5;
                     if (!com_type) {
@@ -94,7 +94,7 @@ int LLOPEN(int fd, int com_type) {
                     printf("Ligação Estabelecida\n");
                     return 1;
                 } else {
-                    state = 0;//else go back to beggining
+                    state = 0;
                 }
                 break;
             }
@@ -154,27 +154,27 @@ int LLWRITE(int fd, char *buffer, int length) {
 			
             read(fd, &c, 1);
 			
-	//printf("error not here\n");
+
             switch (state) {
-            case 0://expecting flag
+            case 0:										//FLAG
                 if(c == FLAG) {
                     state = 1;
                 }//else stay in same state
                 break;
-            case 1://expecting A
+            case 1:										//A_T/A_R
 
                 if(c == A_T) {
                     state = 2;
-                } else if(c == FLAG) { //if FLAG received stay in the same state
+                } else if(c == FLAG) { 
                     state = 1;
 
                 } else
                     state=0;//else go back to beggining
                 break;
 
-            case 2:
+            case 2:										//RR/REJ
 
-                if(c == RR0 || c == RR1) {//Expecting RR
+                if(c == RR0 || c == RR1) {
 					
                     state = 3;
 				}
@@ -183,26 +183,26 @@ int LLWRITE(int fd, char *buffer, int length) {
 					state = 0;
 					flag = 1;
 				
-                } else if(c == FLAG) {  //if FLAG received go back to previous state
+                } else if(c == FLAG) {  				//FLAG
                     state = 1;
-                } else {//else go back to beggining
+                } else {
                     state = 0;
                 }
                 break;
-            case 3://Expecting BCC
+            case 3:										//BCC
                 if (c == (A_T^controlo)) {
                     state = 4;
                 } else {
-                    state = 0;//else go back to beggining
+                    state = 0;
                 }
                 break;
-            case 4://Expecting FLAG
+            case 4:										//FLAG
                 if (c == FLAG) {
                     state = 5;
                     return written;
 
                 } else {
-                    state = 0;//else go back to beggining
+                    state = 0;
                 }
                 break;
             }
@@ -239,38 +239,38 @@ int LLREAD(int fd, char *buffer) {
 		        read(fd, &c, 1);
 
 		       switch (state) {
-		        case 0://expecting flag
+		        case 0:									//FLAG
 		            if(c == FLAG) {
 		                state = 1;
-		            }//else stay in same state
+		            }
 		            break;
-		        case 1://expecting A
+		        case 1:									//A
 
 		            if(c == A_T) {
 		                state = 2;
-		            } else if(c == FLAG) { //if FLAG received stay in the same state
+		            } else if(c == FLAG) {
 		                state = 1; 
 						
 		            } else
-		                state=0;//else go back to beggining
+		                state=0;
 		            break;
 
-		        case 2://Expecting RR
+		        case 2:									//RR
 					
 		            if(c == controlo) {
 		                state = 3;
-		            } else if(c == FLAG) { //if FLAG received go back to previous state
+		            } else if(c == FLAG) { 
 		                state = 1;
-		            } else {//else go back to beggining
+		            } else {
 		                state = 0;
 		            }
 		            break;
-		        case 3://Expecting BCC
+		        case 3:									//BCC
 				
-					if(BCC_ERROR_PROBABILITY != 0){
+					if(BCC_ERROR_PROBABILITY != 0){		//Introdução manual de erro de leitura
 						random = rand();
 						random = (random % (100/BCC_ERROR_PROBABILITY)) + 1;
-						//printf("random = %d\n",random);
+
 						if(random == 1)
 							c = !c;
 					}
@@ -282,7 +282,7 @@ int LLREAD(int fd, char *buffer) {
 		                state = 0;//else go back to beggining
 		            }
 		            break;
-		        case 4://Expecting FLAG
+		        case 4:									//FLAG
 					if( c == FLAG){
 						state = 5;
 					}
@@ -330,12 +330,12 @@ int LLCLOSE(int fd, int com_type) {
             read(fd, &c, 1);
 		
             switch (state) {
-            case 0://expecting flag
+            case 0:									//FLAG
                 if(c == FLAG) {
                     state = 1;
-                }//else stay in same state
+                }
                 break;
-            case 1://expecting A
+            case 1:									//A
                 if(com_type) {
                     address=A_R;
                 }
@@ -344,27 +344,27 @@ int LLCLOSE(int fd, int com_type) {
                 }
                 if(c == address) {
                     state = 2;
-				}else if(c==FLAG){ //if FLAG received stay in same state
+				}else if(c==FLAG){ 
                     state = 1;
 
                 } else
-                    state=0;//else go back to beggining
+                    state=0;
                 break;
 
             case 2:
               
-                if(c == DISC) { //expecting DISC
+                if(c == DISC) { 					//DISC
                     state = 3;
-                } else if(c == FLAG) {  //if FLAG received go back to previous state
+                } else if(c == FLAG) { 
                     state = 1;
                 } 
 				else if(c == UA && receiveUA == 1){
 					state = 3;
-				} else {//else go back to beggining
+				} else {
                     state = 0;
                 }
                 break;
-            case 3://Expecting BCC
+            case 3:									//BCC
 			
                 if (c == (address^DISC)) {
                     state = 4;
@@ -374,11 +374,11 @@ int LLCLOSE(int fd, int com_type) {
 					state = 4;
 				}
 				else {
-                    state = 0;//else go back to beggining
+                    state = 0;
                 }
 				
                 break;
-            case 4://Expecting FLAG
+            case 4:									//FLAG
 			
                 if (c == FLAG) {
                     state = 5;
@@ -555,7 +555,7 @@ char* verify_bcc2(char* control_message, int* length){
 
 char* destuffing(char* msg, int* length){
 	
-//	int length_decrement=0;
+
 	char* str = (char*) malloc(*length);
 	int i;
 	int new_length = 0;
@@ -569,12 +569,10 @@ char* destuffing(char* msg, int* length){
 			if(msg[i+1] == 0x5e){
 				str[new_length-1] = FLAG;
 				i++;
-				//length_decrement++;
 			}
 	 		else if(msg[i+1] == 0x5d){
 				str[new_length -1] = 0x7d;
 				i++;
-				//length_decrement++;
 			}
 		}
 		else{
@@ -583,7 +581,7 @@ char* destuffing(char* msg, int* length){
 
 	}
 	*length = new_length;
-	//printf("length=%d\tsizeofSTR=%ld\n",*length,sizeof(str) / sizeof(*str) );
+
 	return str;
 }
 
@@ -638,7 +636,7 @@ char* control_frame(char* filename, FILE *file, int start, int* frame_size){
 	
 	
 	int file_name_size	= strlen(filename);
-	int file_size = getFileSize(file);					//Get file size
+	int file_size = getFileSize(file);							//Get file size
 	if(start)
 		printf("\nFile size = %d bytes\n\n",file_size);	
 	int i = 0;

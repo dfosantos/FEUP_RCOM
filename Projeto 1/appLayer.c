@@ -1,15 +1,12 @@
 /*Non-Canonical Input Processing*/
 
-#define CHUNK_SIZE 50	//Número de bytes do ficheiro a ser enviado de cada vez
+#define CHUNK_SIZE 256												//Número de bytes do ficheiro a ser enviado de cada vez
 #include "dataLink.h"
 #include "utilities.h"
 
 int main(int argc, char** argv) {
     fflush(NULL);
     int fd = open(argv[1], O_RDWR | O_NOCTTY );
-	
-	//Tipo de comunicação: Sender (1) or Receiver (0)
-	int com_type = check_arguments(argc, argv);	
 
     struct termios oldtio,newtio;
     
@@ -44,7 +41,7 @@ int main(int argc, char** argv) {
         exit(-1);
     }
 
-    //printf("New termios structure set\n\n");
+    
     fflush(NULL);
 	
 	
@@ -56,21 +53,22 @@ int main(int argc, char** argv) {
 ---------------------------------------------------------------
 ---------------------------------------------------------------
 */
-	printf("\n");
+
+	
+	//Tipo de comunicação: Sender (1) or Receiver (0)
+	int com_type = check_arguments(argc, argv);	
   	struct timeval start, stop;
 	double secs = 0;
-	
-
-
-
 	FILE *file;
+	
+	printf("\n");
     
     if(com_type) {
 			
 
 		if((file=openfile(argv[3], com_type))==NULL)exit(1);
-		if(LLOPEN(fd , com_type)==-1) exit(1);		//Estabelecimento da comunicação
-		gettimeofday(&start, NULL);
+		if(LLOPEN(fd , com_type)==-1) exit(1);										//Estabelecimento da comunicação
+		gettimeofday(&start, NULL);													//Inicia relógio
         fflush(NULL);
         
 		
@@ -85,7 +83,7 @@ int main(int argc, char** argv) {
 		stuffed = stuffing (control, &size);									
 	
 
-		if(LLWRITE(fd, stuffed, size) == -1 )		//Send file info
+		if(LLWRITE(fd, stuffed, size) == -1 )										//Send file info
 			exit(1);		
 		
 		printf("A enviar...\n");
@@ -109,10 +107,10 @@ int main(int argc, char** argv) {
 		control = control_frame( argv[3] , file , 0 , &size);						//END frame
 		stuffed = stuffing (control, &size);
 		
-		if(LLWRITE(fd, stuffed, size) == -1 )		//Send END frame
+		if(LLWRITE(fd, stuffed, size) == -1 )										//Send END frame
 			exit(1);	
 			
-		gettimeofday(&stop, NULL);	
+		gettimeofday(&stop, NULL);													//Para o relógio
 		printf("\n\nFicheiro enviado!\n");
 		secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 		printf("\nEstatística:\n");
@@ -123,10 +121,10 @@ int main(int argc, char** argv) {
 	
 	if(!com_type){
 		
-		if(LLOPEN(fd , com_type)==-1) exit(1);		//Estabelecimento da comunicação
-		gettimeofday(&start, NULL);
+		if(LLOPEN(fd , com_type)==-1) exit(1);										//Estabelecimento da comunicação
+		gettimeofday(&start, NULL);													//Inicia o relógio
 		
-		char stuffed [CHUNK_SIZE+(int)CHUNK_SIZE/2];
+		char stuffed [CHUNK_SIZE+(int)CHUNK_SIZE/2];								
 		char *payload;
 		char *buffer;
 		int length;
