@@ -86,13 +86,13 @@ void loading(int current_size, int total_size){
 	static short progress=0;
 	int i;
 	if(progress == 0){
-		for(i=0 ; i < 100 ; i++)	printf("\u2591");
+		for(i=0 ; i < 100 ; i++)	printf("\x1B[33m\u2591\x1B[0m");
 		for(i=0 ; i < 100 ; i++)	printf("\b");
 	}
 	
 	
 	for(i = 0 ; i < ((int)((float)current_size/(float)total_size*100)) - progress ; i++)
-		printf("\u2593");
+		printf("\x1B[32m\u2593\x1B[0m");
 	
 	progress=(int)((float)current_size/(float)total_size*100);
 }

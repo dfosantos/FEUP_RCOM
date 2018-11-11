@@ -734,19 +734,3 @@ char* remove_header(char* buffer, int* length){
 	
 	
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
