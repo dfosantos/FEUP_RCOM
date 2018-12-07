@@ -1,12 +1,13 @@
 #include "dataLink.h"
 
 int flag=0;
-int TIMEOUT=0;
+int timeout=0;
 int Nr=0;
 
 
+
 void time_out() {
-    TIMEOUT++;
+	timeout++;
     flag=1;
 }
 
@@ -15,16 +16,18 @@ int LLOPEN(int fd, int com_type) {
     if(com_type)
     (void) signal(SIGALRM, time_out);
     char address, address2;
-    unsigned char c;//last char received
+    char c;								
     int state = 0;
 
     if(!com_type) {
-        printf("Esperando SET...\n");
+        printf("Esperando emissor...\n");
     }
-
-    while(TIMEOUT<3) {
+	else
+		printf("Esperando recetor...\n");
+    while(timeout<=TIMEOUTS) {
 
         if(com_type) {
+			
             send_SET(fd);
             alarm(3);
 			flag=0;
@@ -38,12 +41,12 @@ int LLOPEN(int fd, int com_type) {
 
             switch (state) {
                 
-            case 0://expecting flag
+            case 0:									//FLAG
                 if(c == FLAG) {
                     state = 1;
                 }//else stay in same state
                 break;
-            case 1://expecting A
+            case 1:									//A_R/A_T
                 if(com_type) {
                     address=A_R;
                 }
@@ -52,14 +55,14 @@ int LLOPEN(int fd, int com_type) {
                 }
                 if(c == address) {
                     state = 2;
-                } else if(c == FLAG) { //if not FLAG instead of A
+                } else if(c == FLAG) {  
                     state = 1;
 
                 } else
-                    state=0;//else stay in same state
+                    state=0;
                 break;
 
-            case 2:
+            case 2:									//UA/SET
                 if(com_type) {
                     address2=UA;
                 }
@@ -68,20 +71,20 @@ int LLOPEN(int fd, int com_type) {
                 }
                 if(c == address2) {
                     state = 3;
-                } else if(c == FLAG) { //if FLAG received
+                } else if(c == FLAG) { 
                     state = 1;
-                } else {//else go back to beggining
+                } else {
                     state = 0;
                 }
                 break;
-            case 3://Expecting BCC
-                if (c == address^address2) {
+            case 3:									//BCC
+                if (c == (address^address2)) {
                     state = 4;
                 } else {
-                    state = 0;//else go back to beggining
+                    state = 0;
                 }
                 break;
-            case 4://Expecting FLAG
+            case 4:									//FLAG
                 if (c == FLAG) {
                     state = 5;
                     if (!com_type) {
@@ -90,47 +93,32 @@ int LLOPEN(int fd, int com_type) {
                     printf("Ligação Estabelecida\n");
                     return 1;
                 } else {
-                    state = 0;//else go back to beggining
+                    state = 0;
                 }
                 break;
             }
         }
     }
 
-    printf("TIMEOUT - Ligação Não Estabelecida\n");
+    printf("timeout - Ligação Não Estabelecida\n");
     return -1;
 }
-FILE *openfile(char* filename, int com_type){
 
-	FILE *file;
-
-	if(com_type) file=fopen(filename, "rb");
-	
-	
-	else file=fopen(filename, "wb");
-	
-	if(file==NULL){
-		printf("Erro a abrir o ficheiro %s\n", filename);
-		return NULL;
-	}
-	
-	return file;
-}
 int LLWRITE(int fd, char *buffer, int length) {
 		
     fflush(NULL);
-    TIMEOUT = 0;
+    timeout = 0;
     char *trama = malloc((length+5)*sizeof(char));
-    char controlo, controloREJ;
+    char controlo;
     char c;
     int i, written, state = 0;
 
     if(Nr==0) {
-        
+        Nr=1;
         controlo = RR0;
     }
     else if(Nr==1) {
-        
+        Nr=0;
         controlo = RR1;
     }
 
@@ -150,70 +138,70 @@ int LLWRITE(int fd, char *buffer, int length) {
     
     //ESPERAR PELO ACK
     (void) signal(SIGALRM, time_out);
-    TIMEOUT = 0;
-    while(TIMEOUT<3) {
+    timeout = 0;
+    while(timeout<=TIMEOUTS) {
 		
 		written = write(fd, trama, length + 5);
 		written = written-5;
 	
-
+		
         alarm(3);
         flag=0;
 		state=0;
         while(state != 5 && flag==0 ) {
+
 			
             read(fd, &c, 1);
 			
 
             switch (state) {
-            case 0://expecting flag
+            case 0:										//FLAG
                 if(c == FLAG) {
                     state = 1;
                 }//else stay in same state
                 break;
-            case 1://expecting A
+            case 1:										//A_T/A_R
 
                 if(c == A_T) {
                     state = 2;
-                } else if(c == FLAG) { //if not FLAG instead of A
+                } else if(c == FLAG) { 
                     state = 1;
 
                 } else
-                    state=0;//else stay in same state
+                    state=0;//else go back to beggining
                 break;
 
-            case 2://Expecting RR
+            case 2:										//RR/REJ
 
-                if(c == controlo) {
-					Nr=!Nr;
-				//	Ns=!Ns;
+                if(c == RR0 || c == RR1) {
+					
                     state = 3;
 				}
 				else if( c == REJ0 || c == REJ1){
-					printf("REJ recebido\n");
+					
 					state = 0;
 					flag = 1;
 				
-                } else if(c == FLAG) { //if FLAG received
+                } else if(c == FLAG) {  				//FLAG
                     state = 1;
-                } else {//else go back to beggining
+                } else {
                     state = 0;
                 }
                 break;
-            case 3://Expecting BCC
-                if (c == A_T^controlo) {
+            case 3:										//BCC
+                if (c == (A_T^controlo)) {
                     state = 4;
                 } else {
-                    state = 0;//else go back to beggining
+                    state = 0;
                 }
                 break;
-            case 4://Expecting FLAG
+            case 4:										//FLAG
                 if (c == FLAG) {
                     state = 5;
                     return written;
 
                 } else {
-                    state = 0;//else go back to beggining
+                    state = 0;
                 }
                 break;
             }
@@ -227,9 +215,10 @@ int LLWRITE(int fd, char *buffer, int length) {
 
 int LLREAD(int fd, char *buffer) {
 
-    int length=0;;
+    int length=0;
+	int random;
 	int state = 0;
-	unsigned char c;
+	char c;
 	char controlo;
 	
    if(Nr==0) {		
@@ -247,41 +236,51 @@ int LLREAD(int fd, char *buffer) {
 		while(state != 5) {
 
 		        read(fd, &c, 1);
+
 		       switch (state) {
-		        case 0://expecting flag
+		        case 0:									//FLAG
 		            if(c == FLAG) {
 		                state = 1;
-		            }//else stay in same state
+		            }
 		            break;
-		        case 1://expecting A
+		        case 1:									//A
 
 		            if(c == A_T) {
 		                state = 2;
-		            } else if(c == FLAG) { //if not FLAG instead of A
-		                state = 1;
+		            } else if(c == FLAG) {
+		                state = 1; 
 						
 		            } else
-		                state=0;//else stay in same state
+		                state=0;
 		            break;
 
-		        case 2://Expecting C_SET
+		        case 2:									//RR
 					
 		            if(c == controlo) {
 		                state = 3;
-		            } else if(c == FLAG) { //if FLAG received
+		            } else if(c == FLAG) { 
 		                state = 1;
-		            } else {//else go back to beggining
+		            } else {
 		                state = 0;
 		            }
 		            break;
-		        case 3://Expecting BCC
-		            if (c == A_T^controlo) {
+		        case 3:									//BCC
+				
+					if(BCC_ERROR_PROBABILITY != 0){		//Introdução manual de erro de leitura
+						random = rand();
+						random = (random % (100/BCC_ERROR_PROBABILITY)) + 1;
+
+						if(random == 1)
+							c = !c;
+					}
+					
+		            if (c == ((A_T^controlo))) {
 		                state = 4;
-		            } else {
+		            } else 
 		                state = 0;//else go back to beggining
-		            }
+		            
 		            break;
-		        case 4://Expecting FLAG
+		        case 4:									//FLAG
 					if( c == FLAG){
 						state = 5;
 					}
@@ -294,8 +293,8 @@ int LLREAD(int fd, char *buffer) {
 		            break;
 		        }
 		    }
-   	
-
+if(TRANSMISSION_DELAY)   	
+	delay(TRANSMISSION_DELAY*2);
 return length;
 
 
@@ -316,7 +315,7 @@ int LLCLOSE(int fd, int com_type) {
 	
 	
 	
-	while(TIMEOUT<3 || !com_type) {
+	while(timeout<=TIMEOUTS || !com_type) {
 		
 		if(com_type) {
 			alarm(3);
@@ -327,54 +326,58 @@ int LLCLOSE(int fd, int com_type) {
         while(state != 5 && flag==0 ) {
 			
             read(fd, &c, 1);
-			
+		
             switch (state) {
-            case 0://expecting flag
+            case 0:									//FLAG
                 if(c == FLAG) {
                     state = 1;
-                }//else stay in same state
+                }
                 break;
-            case 1://expecting A
+            case 1:									//A
                 if(com_type) {
                     address=A_R;
                 }
-                else{
+                else if(!com_type){
                     address=A_T;
                 }
                 if(c == address) {
                     state = 2;
-                } else if(c == FLAG) { //if not FLAG instead of A
+				}else if(c==FLAG){ 
                     state = 1;
 
                 } else
-                    state=0;//else stay in same state
+                    state=0;
                 break;
 
             case 2:
               
-                if(c == DISC) {
+                if(c == DISC) { 					//DISC
                     state = 3;
-                } else if(c == FLAG) { //if FLAG received
+                } else if(c == FLAG) { 
                     state = 1;
                 } 
 				else if(c == UA && receiveUA == 1){
 					state = 3;
-				} else {//else go back to beggining
+				} else {
                     state = 0;
                 }
                 break;
-            case 3://Expecting BCC
-                if (c == address^DISC) {
+            case 3:									//BCC
+			
+                if (c == (address^DISC)) {
                     state = 4;
                 } 
-				else if(receiveUA == 1 && c == UA^address){
-					state == 4;
+				else if((receiveUA == 1) && (c == (UA^address))){
+					
+					state = 4;
 				}
 				else {
-                    state = 0;//else go back to beggining
+                    state = 0;
                 }
+				
                 break;
-            case 4://Expecting FLAG
+            case 4:									//FLAG
+			
                 if (c == FLAG) {
                     state = 5;
                     if (!com_type && receiveUA == 0) {
@@ -411,15 +414,18 @@ int LLCLOSE(int fd, int com_type) {
 void send_UA(int fd, int com_type) {
 
     char trama_UA[5];
+	char address;
     trama_UA[0]=FLAG;
 	if(com_type){
-		trama_UA[1]=A_T;	
+		address = A_T;
+		trama_UA[1]=address;	
 	}
 	else{
-		trama_UA[1]=A_R;
+		address = A_R;
+		trama_UA[1] = address;
 	}
     trama_UA[2]=UA;
-    trama_UA[3]=A_R^UA;
+    trama_UA[3]=address^UA;
     trama_UA[4]=FLAG;
 
     write(fd, trama_UA, 5);
@@ -444,14 +450,18 @@ void send_SET(int fd) {
 void send_DISC(int fd, int com_type) {
 
     char trama[5];
+	char address;
     trama[0]=FLAG;
-	if(com_type)
-		trama[1]=A_T;
+	if(com_type){
+		address = A_T;
+		trama[1] = address;
+	}
 	else{
-		trama[1] = A_R;
+		address = A_R;
+		trama[1] = address;
 	}
     trama[2]=DISC;
-    trama[3]=A_T^DISC;
+    trama[3]=address^DISC;
     trama[4]=FLAG;
 
     write(fd, trama, 5);
@@ -468,6 +478,7 @@ void send_RR(int fd){
         controlo = RR0;
     }
     else if(Nr==1) {
+		
        	Nr = 0;
         controlo = RR1;
     }
@@ -476,7 +487,7 @@ void send_RR(int fd){
     trama[0]=FLAG;
     trama[1]=A_T;
     trama[2]=controlo;
-    trama[3]=A_T^controlo;
+    trama[3]=(A_T^controlo);
     trama[4]=FLAG;
 
     write(fd, trama, 5);
@@ -488,7 +499,6 @@ void send_REJ(int fd){
 	char controlo;
 	if(Nr==0) {
         
-		
         controlo = REJ0;
     }
     else if(Nr==1) {
@@ -500,7 +510,7 @@ void send_REJ(int fd){
     trama[0]=FLAG;
     trama[1]=A_T;
     trama[2]=controlo;
-    trama[3]=A_T^controlo;
+    trama[3]=(A_T^controlo);
     trama[4]=FLAG;
 
     write(fd, trama, 5);
@@ -508,22 +518,30 @@ void send_REJ(int fd){
 	
 }
 
-unsigned char* verify_bcc2(unsigned char* control_message, int* length){
-	unsigned char* destuffed_message = destuffing(control_message, length);
+char* verify_bcc2(char* control_message, int* length){
 
-	int i=0;
-	unsigned char control_bcc2 = 0x00;
-	for(; i<*length-1; i++){
+	char* destuffed_message = destuffing(control_message, length);
+	
+	int i;
+	int random;
+	char control_bcc2 = 0x00;
+	for(i=0; i<*length-1; i++){
 		control_bcc2 ^= destuffed_message[i];
 		
 	}
-	
+	if(BCC2_ERROR_PROBABILITY != 0){
+						random = rand();
+						random = (random % (100/BCC2_ERROR_PROBABILITY)) + 1;
+					
+						if(random == 1)
+							control_bcc2 = !control_bcc2;
+					}
 	if(control_bcc2 != destuffed_message[*length-1]){
 		*length = -1;
 		return NULL;
 	}
 	*length = *length-1;
-	unsigned char* data_message = (unsigned char*) malloc(*length);
+	char* data_message = (char*) malloc(*length);
 	for(i=0; i<*length; i++){
 			data_message[i] = destuffed_message[i];
 	}
@@ -533,19 +551,18 @@ unsigned char* verify_bcc2(unsigned char* control_message, int* length){
 	return data_message;
 }
 
-unsigned char* destuffing(unsigned char* msg, int* length){
+char* destuffing(char* msg, int* length){
 	
-	unsigned int array_length = 133;
-	unsigned char* str = (unsigned char*) malloc(array_length);
-	int i=0;
+
+	char* str = (char*) malloc(*length);
+	int i;
 	int new_length = 0;
 
-	for(; i<*length; i++){
+	
+	
+	for(i=0; i<*length; i++){
 		new_length++;
-		if(new_length >= array_length){
-			array_length = array_length+ (array_length/2);
-			str = (unsigned char *) realloc(str, array_length);
-		}
+	
 		if(msg[i] == 0x7d){
 			if(msg[i+1] == 0x5e){
 				str[new_length-1] = FLAG;
@@ -562,37 +579,34 @@ unsigned char* destuffing(unsigned char* msg, int* length){
 
 	}
 	*length = new_length;
-	
+
 	return str;
 }
 
-unsigned char* stuffing(unsigned char* msg, int* length){
+char* stuffing(char* payload, int* length){
 	
-	unsigned char* str;
-	unsigned char* msg_aux;
-	int i=0;
-	int j=0;
-	unsigned int array_length = *length;
-
-	str = (unsigned char *) malloc(array_length);
-	msg_aux = (unsigned char *) malloc(array_length);
+	char* str;
+	char* msg_aux;
+	int i;
+	int j;
+	
+	
+	str = (char *) malloc(*length);
+	msg_aux = (char *) malloc(*length);
 	char BCC2=0x00;
-	for(; i < *length; i++, j++){
-		BCC2^=msg[i];
-		msg_aux[i] = msg[i];
+	
+	for(i=0,j=0; i < *length; i++, j++){
+		BCC2^=payload[i];
+		msg_aux[i] = payload[i];
 	}
 
-	array_length++;
-	msg_aux = (unsigned char*) realloc(msg_aux,array_length);
-	msg_aux[array_length-1/*index = length-1*/]=BCC2;
 	
+	msg_aux = (char*) realloc(msg_aux,(*length)+1);
+	msg_aux[*length/*index = length-1*/]=BCC2;
+
 	for(i=0,j=0; i < *length+1; i++, j++){
 		
-		if(j >= array_length){
-			array_length = array_length+(array_length/2);
-			str = (unsigned char*) realloc(str, array_length);
 
-		}
 		if(msg_aux[i] ==  FLAG){
 			str[j] = 0x7d;
 			str[j+1] = 0x5e;
@@ -616,22 +630,103 @@ unsigned char* stuffing(unsigned char* msg, int* length){
 	return str;
 }
 
-long getFileSize(FILE* file) {
-
-	long currentPosition = ftell(file);
+char* control_frame(char* filename, FILE *file, int start, int* frame_size){
+	
+	
+	int file_name_size	= strlen(filename);
+	int file_size = getFileSize(file);							//Get file size
+	if(start)
+		printf("\nFile size = %d bytes\n\n",file_size);	
+	int i = 0;
+	char file_size_in_string[30];
+	sprintf(file_size_in_string, "%d", file_size);
+	
+	*frame_size = 5 + file_name_size + strlen(file_size_in_string);
+	char *control_frame = malloc(*frame_size);
+	
+	if(start)
+		control_frame[i++] = START;
+	else
+		control_frame[i++] = END;
+	
+	
+	control_frame[i++] = 0x00;
+	control_frame[i++] = (char)strlen(file_size_in_string);
 
 	
-	if (fseek(file, 0, SEEK_END) == -1) {
-		printf("ERROR: Could not get file size.\n");
-		return -1;
+	for(; i < strlen(file_size_in_string)+3 ; i++){
+		
+		control_frame[i] = file_size_in_string[i-3];		
+	}
+	
+	
+	control_frame[i++] = 0x01;
+	control_frame[i++] = (char) file_name_size;
+	
+	int j;
+	for( j=i ; i<file_name_size+j ; i++ ){
+		
+		control_frame[i] = filename[i-j];
+	}	
+	
+	return control_frame;
+}
+
+char* get_info(char* control, int* file_size){
+	
+	if(control[0]!=0x01)return NULL;
+	int pos = 4+control[2];
+	int filename_size = control[4+control[2]];
+	
+	char *buffer = malloc(100);
+	
+	char* size = malloc(control[2]);
+	int i;
+	
+	for(i=0 ; i < filename_size ; i++ ){
+		buffer[i] = control[pos+1+i];
+	}
+	
+	
+	for(i=0 ; i < control[2] ; i++ )
+		size[i] = control[i+3];
+	
+	
+	*file_size = atoi(size);
+	return buffer;
+}
+
+char* header(char* buffer, int* length, short sequence_number){
+	
+	char* str = malloc((*length)+4);
+	
+	str[0] = 0x00; 
+	str[1] = (char)sequence_number;
+	str[2] = (char)(*length)/256;
+	str[3] = (char)(*length)%256;
+	
+	int i;
+	for(i = 0 ; i < *length ; i++ ){
+		str[i+4] = buffer[i];
 	}
 
+	*length = *length + 4;
+	return str;
 	
-	long size = ftell(file);
+}
+
+char* remove_header(char* buffer, int* length){
+	
+	char* str = malloc(2 * (*length));
+	int i;
+	
 
 	
-	fseek(file, 0, currentPosition);
-
+	for(i = 0 ; i < *length - 4 ; i++)
+		str[i] = buffer[i+4];
 	
-	return size;
+	*length = *length-4;
+	return str;
+	
+	
 }
