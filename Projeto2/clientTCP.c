@@ -18,22 +18,43 @@
 typedef char url_content[256];
 
 typedef struct URL {
-/*	url_content user; // string to user
+	url_content user; // string to user
 	url_content password; // string to password
-*/	url_content host; // string to host
+	url_content host; // string to host
 	url_content ip; // string to IP
-/*	url_content path; // string to path
+	url_content path; // string to path
 	url_content filename; // string to filename
-*/	int port; // integer to port
+	int port; // integer to port
 } url;
+
+  int getIp(url* url){
+    struct hostent *h;
+
+    if ((h=gethostbyname(url->host)) == NULL) {  
+            herror("gethostbyname");
+			return 1;
+        }
+
+        printf("Host name  : %s\n", h->h_name);
+        printf("IP Address : %s\n",inet_ntoa(*((struct in_addr *)h->h_addr)));
+	char* ip = inet_ntoa(*((struct in_addr *) h->h_addr));
+	strcpy(url->ip, ip);
+
+	return 0;
+}
 
 int main(int argc, char** argv){
 
    	char host[STRING_LENGTH];
 	memset(host, 0, STRING_LENGTH); //poe host a 0
+	url url;
+		url.port = SERVER_PORT;
 
     struct hostent *h;
-    h=getIp(host);
+    if (getIp(&url)) {
+		printf("ERROR: Cannot find ip");
+		return -1;
+	}
 
 	int	sockfd;
 	struct	sockaddr_in server_addr;
@@ -64,20 +85,4 @@ int main(int argc, char** argv){
 
 	close(sockfd);
 	exit(0);
-}
-
-  int getIp(url* url){
-    struct hostent *h;
-
-    if ((h=gethostbyname(url->host)) == NULL) {  
-            herror("gethostbyname");
-			return 1;
-        }
-
-        printf("Host name  : %s\n", h->h_name);
-        printf("IP Address : %s\n",inet_ntoa(*((struct in_addr *)h->h_addr)));
-	char* ip = inet_ntoa(*((struct in_addr *) h->h_addr));
-	strcpy(url->ip, ip);
-
-	return 0;
 }
