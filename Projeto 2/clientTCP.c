@@ -17,15 +17,7 @@
 
 typedef char url_content[256];
 
-typedef struct URL {
-	url_content user; // string to user
-	url_content password; // string to password
-	url_content host; // string to host
-	url_content ip; // string to IP
-	url_content path; // string to path
-	url_content filename; // string to filename
-	int port; // integer to port
-} url;
+
 
   int getIp(url* url){
     struct hostent *h;
@@ -52,7 +44,7 @@ int main(int argc, char** argv){
 
     struct hostent *h;
     if (getIp(&url)) {
-		printf("ERROR: Cannot find ip");
+		printf("ERROR: Cannot find ip\n");
 		return -1;
 	}
 
