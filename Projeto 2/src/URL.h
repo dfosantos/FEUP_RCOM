@@ -5,18 +5,8 @@
 #include <sys/types.h>
 #include <netinet/in.h> 
 
-#define ULR_SIZE 256
+int getIp(char* host, char* ip);
 
-typedef char url_content[ULR_SIZE];
+char* copyStringTillChar(char* str, char chr) 
 
-typedef struct URL {
-	url_content user; // string to user
-	url_content password; // string to password
-	url_content host; // string to host
-	url_content ip; // string to IP
-	url_content path; // string to path
-	url_content filename; // string to filename
-	int port; // integer to port
-} url;
-
-int getIp(url* url);
+int processURL(char* user, char* password, char*host, char*ip, char*path, char*filename, char* urlName);
