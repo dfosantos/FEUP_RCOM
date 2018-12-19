@@ -1,18 +1,20 @@
+#include <stdio.h>
 #include "URL.h"
 #include "FTP.h"
 
-#define SERVER_PORT 21
-#define SERVER_ADDR "192.168.28.96"
-#define STRING_LENGTH 50
+int main(int argc, char *argv[])
+{
+        char* user, password, ip, path, filename, host;
+        int port=21;
+        if( processURL( user, password, host, ip, path, filename, argv[1]) != 0)
+                return -1;
 
-int main(int argc, char** argv){
 
-  if(argc != 2){
-		printf("Only 1 argument is allowed in the following format:\n");
-		printf("As a user: ftp://[<user>:<password>@]<host>/<url-path>\n");
-		printf("Anonymous Usage: ftp://<host>/<url-path>\n\n");
-		return 1;
-	}
+        if(getIp(host, ip)) {
+                printf("ERROR: Cannot find ip \n");
+                return -1;
+        }                    
 
+        return 0;
 
 }
