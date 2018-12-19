@@ -176,7 +176,7 @@ int ftpRead(ftp* ftp, char* str, size_t size) {
 	do {
 		memset(str, 0, size);
 		str = fgets(str, size, fp);
-		printf("%s", str);
+	//	printf("%s", str);
 	} while (!('1' <= str[0] && str[0] <= '5') || str[3] != ' ');
 
 	return 0;
