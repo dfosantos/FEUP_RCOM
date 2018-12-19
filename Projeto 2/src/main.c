@@ -2,8 +2,8 @@
 #include "FTP.h"
 
 void printUsage(char* argv0) {
-	printf("\nLogin Usage: %s ftp://[<user>:<password>@]<host>/<url-path>\n",	argv0);
-	printf("Anonymous Usage: %s ftp://<host>/<url-path>\n\n", argv0);
+	printf("\nLogin Usage: ftp://[<user>:<password>@]<host>/<url-path>\n");
+	printf("Anonymous Usage: ftp://<host>/<url-path>\n\n");
 }
 
 int main(int argc, char** argv){
