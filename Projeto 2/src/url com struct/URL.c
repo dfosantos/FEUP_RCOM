@@ -1,6 +1,6 @@
 #include "URL.h"
 
-int getIp(url* url, char* ip){
+int getIp(url* url){
 
   struct hostent *h;
 

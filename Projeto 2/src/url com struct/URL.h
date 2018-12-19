@@ -5,15 +5,13 @@
 #include <sys/types.h>
 #include <netinet/in.h> 
 
-typedef char url_content[256];
-
 typedef struct URL {
-	url_content user; // string to user
-	url_content password; // string to password
-	url_content host; // string to host
-	url_content ip; // string to IP
-	url_content path; // string to path
-	url_content filename; // string to filename
+	char* user; // string to user
+	char* password; // string to password
+	char* host; // string to host
+	char* ip; // string to IP
+	char* path; // string to path
+	char* filename; // string to filename
 	int port; // integer to port
 } url;
 
