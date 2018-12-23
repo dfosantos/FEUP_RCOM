@@ -26,5 +26,5 @@ int download(ftp* ftp, const char* filename);
 int changeDirectory(ftp* ftp, const char* path);
 int passiveMode(ftp* ftp);
 int disconnect(ftp* ftp);
-int ftpRead(ftp* ftp, char* str, size_t size);
-int ftpSend(ftp* ftp, const char* str, size_t size);
+int receiveCommand(ftp* ftp, char* str, size_t size);
+int sendCommand(ftp* ftp, const char* str, size_t size);
