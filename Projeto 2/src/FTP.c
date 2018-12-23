@@ -28,7 +28,7 @@ int connectToSocket(ftp* ftp, const char* ip, int port) {
 	ftp->fd_data = fd;
 	ftp->fd_data = 0;
 
-	ftpRead(ftp, rd, sizeof(rd));
+	receiveCommand(ftp, rd, sizeof(rd));
 
 	return 0;
 }
@@ -39,18 +39,18 @@ int login(ftp* ftp, const char* user, const char* password) {
 	// username
 	sprintf(sd, "USER %s\r\n", user);
 
-	ftpSend(ftp, sd, strlen(sd));
+	sendCommand(ftp, sd, strlen(sd));
 
-	ftpRead(ftp, sd, sizeof(sd));
+	receiveCommand(ftp, sd, sizeof(sd));
 
 	// cleaning buffer
 	memset(sd, 0, sizeof(sd));
 
 	// password
 	sprintf(sd, "PASS %s\r\n", password);
-	ftpSend(ftp, sd, strlen(sd));
+	sendCommand(ftp, sd, strlen(sd));
 
-	ftpRead(ftp, sd, sizeof(sd));
+	receiveCommand(ftp, sd, sizeof(sd));
 
 	return 0;
 }
@@ -59,9 +59,9 @@ int changeDirectory(ftp* ftp, const char* path) {
 	char cwd[1024];
 
 	sprintf(cwd, "CWD %s\r\n", path);
-	ftpSend(ftp, cwd, strlen(cwd));
+	sendCommand(ftp, cwd, strlen(cwd));
 
-	ftpRead(ftp, cwd, sizeof(cwd));
+	receiveCommand(ftp, cwd, sizeof(cwd));
 
 	return 0;
 }
@@ -69,9 +69,9 @@ int changeDirectory(ftp* ftp, const char* path) {
 int passiveMode(ftp* ftp) {
 	char pasv[1024] = "PASV\r\n";
 
-	ftpSend(ftp, pasv, strlen(pasv));
+	sendCommand(ftp, pasv, strlen(pasv));
 
-	ftpRead(ftp, pasv, sizeof(pasv));
+	receiveCommand(ftp, pasv, sizeof(pasv));
 
 	// starting process information
 	int ipPart1, ipPart2, ipPart3, ipPart4;
@@ -99,12 +99,12 @@ int retrieve(ftp* ftp, const char* filename) {
 	char retr[1024];
 
 	sprintf(retr, "RETR %s\r\n", filename);
-	if (ftpSend(ftp, retr, strlen(retr))) {
+	if (sendCommand(ftp, retr, strlen(retr))) {
 		printf("ERROR: Cannot send filename.\n");
 		return 1;
 	}
 
-	if (ftpRead(ftp, retr, sizeof(retr))) {
+	if (receiveCommand(ftp, retr, sizeof(retr))) {
 		printf("ERROR: None information received.\n");
 		return 1;
 	}
@@ -143,13 +143,13 @@ int download(ftp* ftp, const char* filename) {
 int disconnect(ftp* ftp) {
 	char disc[1024];
 
-	if (ftpRead(ftp, disc, sizeof(disc))) {
+	if (receiveCommand(ftp, disc, sizeof(disc))) {
 		printf("ERROR: Cannot disconnect account.\n");
 		return 1;
 	}
 
 	sprintf(disc, "QUIT\r\n");
-	if (ftpSend(ftp, disc, strlen(disc))) {
+	if (sendCommand(ftp, disc, strlen(disc))) {
 		printf("ERROR: Cannot send QUIT command.\n");
 		return 1;
 	}
@@ -160,17 +160,16 @@ int disconnect(ftp* ftp) {
 	return 0;
 }
 
-int ftpSend(ftp* ftp, const char* str, size_t size) {
+int sendCommand(ftp* ftp, const char* str, size_t size) {
 	int bytes;
 
 	bytes = write(ftp->fd_data, str, size);
-
 	printf("Bytes send: %d\nInfo: %s\n", bytes, str);
-
-	return 0;
+    
+	return bytes;
 }
 
-int ftpRead(ftp* ftp, char* str, size_t size) {
+int receiveCommand(ftp* ftp, char* str, size_t size) {
 	FILE* fp = fdopen(ftp->fd_data, "r");
 
 	do {
