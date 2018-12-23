@@ -19,21 +19,21 @@ static int connectSocket(const char* ip, int port) {
 	return sockfd;
 }
 
-int ftpConnect(ftp* ftp, const char* ip, int port) {
-	int socketfd;
+int connectToSocket(ftp* ftp, const char* ip, int port) {
+	int fd;
 	char rd[1024];
 
-	socketfd = connectSocket(ip, port);
+	fd = connectSocket(ip, port);
 
-	ftp->control_socket_fd = socketfd;
-	ftp->data_socket_fd = 0;
+	ftp->fd_data = fd;
+	ftp->fd_data = 0;
 
 	ftpRead(ftp, rd, sizeof(rd));
 
 	return 0;
 }
 
-int ftpLogin(ftp* ftp, const char* user, const char* password) {
+int login(ftp* ftp, const char* user, const char* password) {
 	char sd[1024];
 
 	// username
@@ -55,7 +55,7 @@ int ftpLogin(ftp* ftp, const char* user, const char* password) {
 	return 0;
 }
 
-int ftpCWD(ftp* ftp, const char* path) {
+int changeDirectory(ftp* ftp, const char* path) {
 	char cwd[1024];
 
 	sprintf(cwd, "CWD %s\r\n", path);
@@ -66,7 +66,7 @@ int ftpCWD(ftp* ftp, const char* path) {
 	return 0;
 }
 
-int ftpPasv(ftp* ftp) {
+int passiveMode(ftp* ftp) {
 	char pasv[1024] = "PASV\r\n";
 
 	ftpSend(ftp, pasv, strlen(pasv));
@@ -90,12 +90,12 @@ int ftpPasv(ftp* ftp) {
 	printf("IP: %s\n", pasv);
 	printf("PORT: %d\n", portResult);
 
-	ftp->data_socket_fd = connectSocket(pasv, portResult);
+	ftp->fd_data = connectSocket(pasv, portResult);
 
 	return 0;
 }
 
-int ftpRetr(ftp* ftp, const char* filename) {
+int retrieve(ftp* ftp, const char* filename) {
 	char retr[1024];
 
 	sprintf(retr, "RETR %s\r\n", filename);
@@ -112,7 +112,7 @@ int ftpRetr(ftp* ftp, const char* filename) {
 	return 0;
 }
 
-int ftpDownload(ftp* ftp, const char* filename) {
+int download(ftp* ftp, const char* filename) {
 	FILE* file;
 	int bytes;
 
@@ -122,7 +122,7 @@ int ftpDownload(ftp* ftp, const char* filename) {
 	}
 
 	char buf[1024];
-	while ((bytes = read(ftp->data_socket_fd, buf, sizeof(buf)))) {
+	while ((bytes = read(ftp->fd_data, buf, sizeof(buf)))) {
 		if (bytes < 0) {
 			printf("ERROR: Nothing was received from data socket fd.\n");
 			return 1;
@@ -135,12 +135,12 @@ int ftpDownload(ftp* ftp, const char* filename) {
 	}
 
 	fclose(file);
-	close(ftp->data_socket_fd);
+	close(ftp->fd_data);
 
 	return 0;
 }
 
-int ftpDisconnect(ftp* ftp) {
+int disconnect(ftp* ftp) {
 	char disc[1024];
 
 	if (ftpRead(ftp, disc, sizeof(disc))) {
@@ -154,8 +154,8 @@ int ftpDisconnect(ftp* ftp) {
 		return 1;
 	}
 
-	if (ftp->control_socket_fd)
-		close(ftp->control_socket_fd);
+	if (ftp->fd_data)
+		close(ftp->fd_data);
 
 	return 0;
 }
@@ -163,7 +163,7 @@ int ftpDisconnect(ftp* ftp) {
 int ftpSend(ftp* ftp, const char* str, size_t size) {
 	int bytes;
 
-	bytes = write(ftp->control_socket_fd, str, size);
+	bytes = write(ftp->fd_data, str, size);
 
 	printf("Bytes send: %d\nInfo: %s\n", bytes, str);
 
@@ -171,7 +171,7 @@ int ftpSend(ftp* ftp, const char* str, size_t size) {
 }
 
 int ftpRead(ftp* ftp, char* str, size_t size) {
-	FILE* fp = fdopen(ftp->control_socket_fd, "r");
+	FILE* fp = fdopen(ftp->fd_data, "r");
 
 	do {
 		memset(str, 0, size);

@@ -46,7 +46,7 @@ int main(int argc, char** argv){
 	ftp ftp;
 
 	//connect
-	if(ftpConnect(&ftp, url.ip, url.port) != 0){
+	if(connectToSocket(&ftp, url.ip, url.port) != 0){
 		perror("Error connecting to FTP\n");
 		return 1;
 	}
@@ -68,37 +68,37 @@ int main(int argc, char** argv){
 
 
 	//login
-	if(ftpLogin(&ftp,user,password) != 0){
-		perror("Error logging in ftp\n");
+	if(login(&ftp,user,password) != 0){
+		perror("Login Error\n");
 		return 1;
 	}
 
 	//enter passive mode
-	if(ftpPasv(&ftp) != 0){
-		perror("Error entering PASV mode\n");
+	if(passiveMode(&ftp) != 0){
+		perror("PassiveMode Error\n");
 		return 1;
 	}
 
 	//change directory
-	if(ftpCWD(&ftp,url.path) != 0){
-		perror("Error changing directory\n");
+	if(changeDirectory(&ftp,url.path) != 0){
+		perror("Directory Error\n");
 		return 1;
 	}
 
 	//begin transmitting
-	if(ftpRetr(&ftp,url.filename)!= 0){
-		perror("Error retrieving file\n");
+	if(retrieve(&ftp,url.filename)!= 0){
+		perror("Couldn't retrieve file\n");
 		return 1;
 	}
 
 	//download filename
-	if(ftpDownload(&ftp,url.filename)!= 0){
-		perror("Error downloading file\n");
+	if(download(&ftp,url.filename)!= 0){
+		perror("Error downloading\n");
 		return 1;
 	}
 
 	//disconnect from FTP
-	if(ftpDisconnect(&ftp)!= 0){
+	if(disconnect(&ftp)!= 0){
 		perror("Error disconnecting from ftp\n");
 		return 1;
 	}
