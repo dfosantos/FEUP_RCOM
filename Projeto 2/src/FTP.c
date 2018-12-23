@@ -173,6 +173,7 @@ int receiveCommand(ftp* ftp, char* str, size_t size) {
 	FILE* fp = fdopen(ftp->fd_data, "r");
 
 	do {
+printf("olaasdasd\n");
 		memset(str, 0, size);
 		str = fgets(str, size, fp);
 	//	printf("%s", str);
