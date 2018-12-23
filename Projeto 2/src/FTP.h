@@ -15,18 +15,18 @@
 
 typedef struct FTP
 {
-    int control_socket_fd; // file descriptor to control socket
-    int data_socket_fd; // file descriptor to data socket
+    int fd_control; // file descriptor to control socket
+    int fd_data; // file descriptor to data socket
 } ftp;
 
-int ftpConnect(ftp* ftp, const char* ip, int port);
-int ftpLogin(ftp* ftp, const char* user, const char* password);
-int ftpCWD(ftp* ftp, const char* path);
-int ftpPasv(ftp* ftp);
-int ftpRetr(ftp* ftp, const char* filename);
-int ftpDownload(ftp* ftp, const char* filename);
-int ftpDisconnect(ftp* ftp);
+int connectToSocket(ftp* ftp, const char* ip, int port);
+int sendCommand(ftp* ftp, const char* str, size_t size);
+int receiveCommand(ftp* ftp, char* str, size_t size);
+int login(ftp* ftp, const char* user, const char* password);
+int disconnect(ftp* ftp);
+int passiveMode(ftp* ftp);
+int changeDirectory(ftp* ftp, const char* path);
+int retrieve(ftp* ftp, const char* filename);
+int download(ftp* ftp, const char* filename);
 
-int ftpSend(ftp* ftp, const char* str, size_t size);
-int ftpRead(ftp* ftp, char* str, size_t size);
 
